@@ -1,18 +1,16 @@
-
 services:
-###> doctrine/doctrine-bundle ###
   database:
-    ports:
-      - "5432"
-###< doctrine/doctrine-bundle ###
-
-###> symfony/mailer ###
-  mailer:
-    image: axllent/mailpit
-    ports:
-      - "1025"
-      - "8025"
+    image: mysql:8.0
     environment:
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
-###< symfony/mailer ###
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-app}
+      MYSQL_USER: ${MYSQL_USER:-app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-3-!zPv%2X62Zo}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-3-!zPv%2X62Zo}
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - database_data:/var/lib/mysql:rw
+
+volumes:
+  database_data:
