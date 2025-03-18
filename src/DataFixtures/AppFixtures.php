@@ -2,10 +2,12 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Message;
 use App\Entity\Order;
 use App\Entity\Product;
 use App\Entity\ProductOrder;
 use App\Entity\User;
+use App\Enum\MessageType;
 use App\Enum\OrderStatus;
 use App\Enum\PickupDay;
 use App\Enum\ProductUnit;
@@ -110,6 +112,19 @@ class AppFixtures extends Fixture
                 $order->setTotal($orderTotal);
                 $manager->persist($order);
             }
+        }
+
+        for ($m = 0; $m < rand(1, 5); $m++) { // L'admin publie entre 1 et 5 messages visibles par tous
+            $message = new Message();
+            $message->setUser($admin);
+            $message->setType($faker->randomElement([
+                MessageType::MARQUEE,
+                MessageType::CLOSEDSHOP,
+            ]));
+            $message->setContent($faker->sentence());
+            $message->setIsActive($faker->boolean());
+
+            $manager->persist($message);
         }
 
         $manager->flush();
