@@ -13,8 +13,8 @@ class ProductOrder
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $quantity = null;
+    #[ORM\Column(type: 'float')]
+    private ?float $quantity = null;
 
     #[ORM\Column]
     private ?int $unitPrice = null;
@@ -39,17 +39,17 @@ class ProductOrder
         return $this->id;
     }
 
-    public function getQuantity(): ?int
+    public function getQuantity(): ?float
     {
         return $this->quantity;
     }
 
-    public function setQuantity(int $quantity): static
+    public function setQuantity(float $quantity): static
     {
         $this->quantity = $quantity;
-
         return $this;
     }
+
 
     public function getUnitPrice(): ?int
     {

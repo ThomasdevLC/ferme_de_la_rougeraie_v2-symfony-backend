@@ -8,7 +8,7 @@ use App\Utils\Translator\UnitTranslator;
 
 class ProductMapper
 {
-    public static function toDto(Product $product,  UnitTranslator $translator): ProductDto
+    public static function toDto(Product $product, UnitTranslator $translator): ProductDto
     {
         return new ProductDto(
             id: $product->getId(),
@@ -20,6 +20,7 @@ class ProductMapper
             limited: $product->isLimited(),
             discount: $product->isDiscount(),
             discountText: $product->getDiscountText(),
+            inter: $product->getInter(),
         );
     }
 }

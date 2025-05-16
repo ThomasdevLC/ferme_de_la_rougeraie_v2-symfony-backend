@@ -14,6 +14,7 @@ readonly class ProductDto
         public bool    $limited,
         public bool    $discount,
         public ?string $discountText,
+        public ?float  $inter,
     )
     {}
 }

@@ -20,12 +20,17 @@ class OrderMapper
         foreach ($order->getProductOrders() as $po) {
             $product = $po->getProduct();
 
+            $quantity = $po->getQuantity();
+            $unitPrice = $po->getUnitPrice() !== null ? $po->getUnitPrice() / 100 : 0.0;
+
             $items[] = new OrderItemDto(
                 productName: $product->getName(),
-                quantity: $po->getQuantity(),
-                unitPrice: round($po->getUnitPrice() !== null ? $po->getUnitPrice() / 100 : 0.0, 2),
+                quantity: $quantity,
+                unitPrice: round($unitPrice, 2),
+                lineTotal: round($quantity * $unitPrice, 2)
             );
         }
+
 
         return new OrderDetailsDto(
             id: $order->getId(),
@@ -62,7 +67,9 @@ class OrderMapper
                 ->setOrder($order);
 
             $order->addProductOrder($productOrder);
-            $total += $quantity * $product->getPrice();
+
+            $lineTotal = (int) round($quantity * $product->getPrice());
+            $total += $lineTotal;
         }
 
         $order->setTotal($total);
