@@ -47,7 +47,8 @@
                             'placeholder': 'Votre mot de passe'
                         }
                     }) }}
-                    <button type="button" class="btn btn-outline-secondary" id="toggle-password" onclick="togglePassword()">
+                    <button type="button" class="btn btn-outline-secondary" id="toggle-password"
+                            onclick="togglePassword()">
                         👁
                     </button>
                 </div>
@@ -67,7 +68,12 @@
             </div>
 
             {{ form_end(registrationForm) }}
+
+            <div class="text-center mt-4">
+                <a href="{{ frontUrl }}/products" class="btn btn-outline-secondary"> Retour à la boutique</a>
+            </div>
         </div>
+
     </div>
 
     <script>
@@ -85,5 +91,7 @@
                 }
             }
         }
+
+
     </script>
 {% endblock %}
