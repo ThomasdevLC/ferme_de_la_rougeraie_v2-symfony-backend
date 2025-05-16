@@ -32,13 +32,14 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
-            // do anything else you need here, like send an email
+            $frontendUrl = $_ENV['FRONT_URL'];
+            return $this->redirect($frontendUrl . '/login?registered=1');
 
-            return $this->redirectToRoute('app_home');
         }
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
+            'frontUrl' => $_ENV['FRONT_URL'],
         ]);
     }
 }
