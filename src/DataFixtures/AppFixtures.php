@@ -57,8 +57,11 @@ class AppFixtures extends Fixture
         for ($i = 0; $i < 10; $i++) {
             $product = new Product();
             $product->setName($faker->word());
-            $product->setPrice($faker->numberBetween(10, 500));
+            $euros = $faker->numberBetween(0, 9); // base en euros
+            $cents = $faker->randomElement([0, 25, 40, 50, 55, 65, 75, 85]); // centimes
+            $priceInCents = $euros * 100 + $cents;
 
+            $product->setPrice($priceInCents);
             $unit = $faker->randomElement([
                 ProductUnit::PIECE,
                 ProductUnit::BUNDLE,
@@ -69,8 +72,9 @@ class AppFixtures extends Fixture
             $product->setUnit($unit);
 
             if ($unit === ProductUnit::KG) {
-                $product->setInter($faker->randomFloat(2, 0.1, 0.9)); // uniquement entre 0.1 et 0.9
+                $product->setInter($faker->randomElement([0.1,0.2,0.25, 0.5 ]));
             }
+
 
             $product->setIsDisplayed($faker->boolean());
             $product->setHasStock($faker->boolean());
@@ -78,7 +82,7 @@ class AppFixtures extends Fixture
             $product->setLimited($faker->boolean());
             $product->setDiscount($faker->boolean());
             $product->setDiscountText($faker->boolean() ? $faker->sentence() : null);
-            $product->setImage('tomates.jpg');
+            $product->setImage('default.jpg');
             $product->setUser($admin);
 
             $manager->persist($product);
