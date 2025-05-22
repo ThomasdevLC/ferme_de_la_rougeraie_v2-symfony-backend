@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Form\UserProfileUpdateFormType;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserProfileController extends AbstractController
 {
@@ -29,17 +29,21 @@ class UserProfileController extends AbstractController
     public function update(
         Request $request,
         UserProfileUpdateMapper $mapper,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        ValidatorInterface $validator
     ): JsonResponse {
         /** @var User $user */
         $user = $this->getUser();
 
         $dto = new UserProfileUpdateDto();
-        $form = $this->createForm(UserProfileUpdateFormType::class, $dto);
-        $form->submit(json_decode($request->getContent(), true));
+        $data = json_decode($request->getContent(), true);
 
-        if (!$form->isSubmitted() || !$form->isValid()) {
-            return $this->json(['errors' => (string) $form->getErrors(true, false)], 400);
+        $dto->phone = $data['phone'] ?? '';
+        $dto->plainPassword = $data['plainPassword'] ?? null;
+
+        $errors = $validator->validate($dto);
+        if (count($errors) > 0) {
+            return $this->json(['errors' => (string) $errors], 400);
         }
 
         $mapper->updateUserFromDto($user, $dto);
@@ -48,13 +52,3 @@ class UserProfileController extends AbstractController
         return $this->json(['message' => 'Profil mis à jour avec succès']);
     }
 }
-
-
-
-
-
-
-
-
-
-
