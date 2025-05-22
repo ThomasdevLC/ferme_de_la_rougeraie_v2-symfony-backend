@@ -7,7 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/products', name: 'store_products_')]
+#[Route('/api/products', name: 'store_products_')]
 class ProductStoreController extends AbstractController
 {
     #[Route('', name: 'list', methods: ['GET'])]

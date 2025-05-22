@@ -7,7 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/messages', name: 'store_messages_')]
+#[Route('/api/messages', name: 'store_messages_')]
 class MessageStoreController extends AbstractController
 {
     #[Route('', name: 'list', methods: ['GET'])]
