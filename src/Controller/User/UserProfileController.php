@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserProfileController extends AbstractController
 {
@@ -30,7 +31,8 @@ class UserProfileController extends AbstractController
         Request $request,
         UserProfileUpdateMapper $mapper,
         EntityManagerInterface $em,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        UserPasswordHasherInterface $passwordHasher
     ): JsonResponse {
         /** @var User $user */
         $user = $this->getUser();
@@ -38,12 +40,26 @@ class UserProfileController extends AbstractController
         $dto = new UserProfileUpdateDto();
         $data = json_decode($request->getContent(), true);
 
-        $dto->phone = $data['phone'] ?? '';
+        // Récupération des champs
+        $dto->oldPassword = $data['oldPassword'] ?? null;
         $dto->plainPassword = $data['plainPassword'] ?? null;
+        $dto->oldPhone = $data['oldPhone'] ?? null;
+        $dto->phone = $data['phone'] ?? '';
 
         $errors = $validator->validate($dto);
         if (count($errors) > 0) {
             return $this->json(['errors' => (string) $errors], 400);
+        }
+
+        if ($dto->plainPassword) {
+            if (!$dto->oldPassword || !$passwordHasher->isPasswordValid($user, $dto->oldPassword)) {
+                return $this->json(['error' => 'Mot de passe actuel incorrect'], 400);
+            }
+            $user->setPassword($passwordHasher->hashPassword($user, $dto->plainPassword));
+        }
+
+        if ($dto->phone && $dto->oldPhone && $user->getPhone() !== $dto->oldPhone) {
+            return $this->json(['error' => 'Ancien téléphone incorrect'], 400);
         }
 
         $mapper->updateUserFromDto($user, $dto);
