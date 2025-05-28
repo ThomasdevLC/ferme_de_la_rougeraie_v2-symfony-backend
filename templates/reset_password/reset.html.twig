@@ -13,19 +13,100 @@
             <h3 class="text-center mb-3">Réinitialiser votre mot de passe</h3>
 
             {{ form_start(resetForm) }}
+
+            {# Nouveau mot de passe #}
             <div class="mb-3">
-                {{ form_label(resetForm.plainPassword, 'Nouveau mot de passe', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(resetForm.plainPassword, {'attr': {'class': 'form-control', 'placeholder': 'Votre nouveau mot de passe'}}) }}
-                {{ form_errors(resetForm.plainPassword) }}
+                {{ form_label(resetForm.plainPassword.first, 'Nouveau mot de passe', {'label_attr': {'class': 'form-label'}}) }}
+                <div class="input-group">
+                    {{ form_widget(resetForm.plainPassword.first, {
+                        'attr': {
+                            'class': 'form-control password-input',
+                            'placeholder': 'Votre nouveau mot de passe'
+                        }
+                    }) }}
+                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword(this)">
+          <span class="icon-eye">
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="lucide lucide-eye">
+              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
+                    </button>
+                </div>
+                {{ form_errors(resetForm.plainPassword.first) }}
+            </div>
+
+            {# Confirmation mot de passe #}
+            <div class="mb-3">
+                {{ form_label(resetForm.plainPassword.second, 'Confirmer le mot de passe', {'label_attr': {'class': 'form-label'}}) }}
+                <div class="input-group">
+                    {{ form_widget(resetForm.plainPassword.second, {
+                        'attr': {
+                            'class': 'form-control password-input',
+                            'placeholder': 'Confirmer le mot de passe'
+                        }
+                    }) }}
+                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword(this)">
+          <span class="icon-eye">
+
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="lucide lucide-eye">
+              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
+                    </button>
+                </div>
+                {{ form_errors(resetForm.plainPassword.second) }}
             </div>
 
             <div class="d-grid mb-3">
-                <button class="btn text-white" style="background-color: #fe8401;">
+                <button type="submit" class="btn text-white" style="background-color: #fe8401;">
                     Réinitialiser le mot de passe
                 </button>
             </div>
+
             {{ form_end(resetForm) }}
 
         </div>
     </div>
+
+    <script>
+        function togglePassword(btn) {
+            const input = btn.closest('.input-group').querySelector('input.password-input');
+            const icon = btn.querySelector('span.icon-eye');
+            if (!input) return;
+
+            const eyeClosed = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-eye-closed">
+        <path d="m15 18-.722-3.25"/>
+        <path d="M2 8a10.645 10.645 0 0 0 20 0"/>
+        <path d="m20 15-1.726-2.05"/>
+        <path d="m4 15 1.726-2.05"/>
+        <path d="m9 18 .722-3.25"/>
+      </svg>`;
+
+            const eyeOpen = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="lucide lucide-eye">
+        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>`;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = eyeClosed;
+            } else {
+                input.type = 'password';
+                icon.innerHTML = eyeOpen;
+            }
+        }
+    </script>
 {% endblock %}
