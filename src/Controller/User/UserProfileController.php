@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -26,45 +27,65 @@ class UserProfileController extends AbstractController
         return $this->json($dto);
     }
 
-    #[Route('/api/me', name: 'api_me_update', methods: ['PUT'])]
+    #[Route('/api/me', name: 'api_me_update', methods: ['PATCH'])]
     public function update(
-        Request $request,
-        UserProfileUpdateMapper $mapper,
-        EntityManagerInterface $em,
-        ValidatorInterface $validator,
+        Request                     $request,
+        UserProfileUpdateMapper     $mapper,
+        EntityManagerInterface      $em,
+        ValidatorInterface          $validator,
         UserPasswordHasherInterface $passwordHasher
-    ): JsonResponse {
+    ): JsonResponse
+    {
         /** @var User $user */
         $user = $this->getUser();
-
-        $dto = new UserProfileUpdateDto();
         $data = json_decode($request->getContent(), true);
 
-        // Récupération des champs
+        $dto = new UserProfileUpdateDto();
         $dto->oldPassword = $data['oldPassword'] ?? null;
         $dto->plainPassword = $data['plainPassword'] ?? null;
         $dto->oldPhone = $data['oldPhone'] ?? null;
-        $dto->phone = $data['phone'] ?? '';
+        $dto->phone = $data['phone'] ?? null;
 
-        $errors = $validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['errors' => (string) $errors], 400);
+        $groups = ['Default'];
+        if (null !== $dto->plainPassword) {
+            $groups[] = 'password_update';
+        }
+        if (null !== $dto->phone) {
+            $groups[] = 'phone_update';
         }
 
-        if ($dto->plainPassword) {
-            if (!$dto->oldPassword || !$passwordHasher->isPasswordValid($user, $dto->oldPassword)) {
-                return $this->json(['error' => 'Mot de passe actuel incorrect'], 400);
+        // Validation via Validator
+        $errors = $validator->validate($dto, null, $groups);
+        $formatted = [];
+        /** @var ConstraintViolation $violation */
+        foreach ($errors as $violation) {
+            $field = $violation->getPropertyPath();
+            $formatted[$field][] = $violation->getMessage();
+        }
+
+        if (null !== $dto->phone) {
+            if (null === $dto->oldPhone || $dto->oldPhone !== $user->getPhone()) {
+                $formatted['oldPhone'][] = 'Ancien numéro de téléphone incorrect.';
             }
-            $user->setPassword($passwordHasher->hashPassword($user, $dto->plainPassword));
         }
 
-        if ($dto->phone && $dto->oldPhone && $user->getPhone() !== $dto->oldPhone) {
-            return $this->json(['error' => 'Ancien téléphone incorrect'], 400);
+        if (count($formatted) > 0) {
+            return $this->json(['errors' => $formatted], 422);
+        }
+
+        if (null !== $dto->plainPassword) {
+            $user->setPassword(
+                $passwordHasher->hashPassword($user, $dto->plainPassword)
+            );
+        }
+
+        if (null !== $dto->phone && $dto->phone !== $user->getPhone()) {
+            $user->setPhone($dto->phone);
         }
 
         $mapper->updateUserFromDto($user, $dto);
         $em->flush();
 
-        return $this->json(['message' => 'Profil mis à jour avec succès']);
+        return $this->json(['message' => 'Profil mis à jour']);
     }
 }
