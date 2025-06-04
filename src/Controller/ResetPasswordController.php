@@ -19,7 +19,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\ResetPassword\Controller\ResetPasswordControllerTrait;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
-
+use Psr\Log\LoggerInterface;
 #[Route('/reset-password')]
 class ResetPasswordController extends AbstractController
 {
@@ -27,9 +27,12 @@ class ResetPasswordController extends AbstractController
 
     public function __construct(
         private ResetPasswordHelperInterface $resetPasswordHelper,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger
     ) {
     }
+
+
 
     /**
      * Display & process form to request a password reset.
@@ -50,6 +53,7 @@ class ResetPasswordController extends AbstractController
 
         return $this->render('reset_password/request.html.twig', [
             'requestForm' => $form,
+            'frontUrl' => $_ENV['FRONT_URL'],
         ]);
     }
 
@@ -121,7 +125,8 @@ class ResetPasswordController extends AbstractController
             // The session is cleaned up after the password has been changed.
             $this->cleanSessionAfterReset();
 
-            return $this->redirectToRoute('app_home');
+            $frontendUrl = $_ENV['FRONT_URL'];
+            return $this->redirect($frontendUrl . '/login?reset=1');
         }
 
         return $this->render('reset_password/reset.html.twig', [
@@ -139,7 +144,6 @@ class ResetPasswordController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_check_email');
         }
-
         try {
             $resetToken = $this->resetPasswordHelper->generateResetToken($user);
         } catch (ResetPasswordExceptionInterface $e) {
@@ -152,7 +156,6 @@ class ResetPasswordController extends AbstractController
             //     $translator->trans(ResetPasswordExceptionInterface::MESSAGE_PROBLEM_HANDLE, [], 'ResetPasswordBundle'),
             //     $translator->trans($e->getReason(), [], 'ResetPasswordBundle')
             // ));
-
             return $this->redirectToRoute('app_check_email');
         }
 
@@ -166,11 +169,13 @@ class ResetPasswordController extends AbstractController
             ])
         ;
 
+
         $mailer->send($email);
 
         // Store the token object in session for retrieval in check-email route.
         $this->setTokenObjectInSession($resetToken);
 
-        return $this->redirectToRoute('app_check_email');
+        return $this->redirectToRoute('app_check_email')
+            ;
     }
 }
