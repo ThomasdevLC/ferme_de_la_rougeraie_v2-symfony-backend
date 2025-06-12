@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 
 /**
- * Displays the product-client quantities table for a specific pickup day (Tuesday or Thursday).
+ * Displays the product-client quantities table for a specific pickup day (Tuesday or FRIDAY).
  *
  * @Route("/admin/product-client-tab", name="admin_product_client_tab")
  *

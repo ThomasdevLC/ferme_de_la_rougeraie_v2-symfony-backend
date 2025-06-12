@@ -63,7 +63,7 @@ class OrderCrudController extends AbstractCrudController
                 ->renderAsBadges()
                 ->formatValue(fn($value) => match($value) {
                     \App\Enum\PickupDay::TUESDAY => 'Mardi',
-                    \App\Enum\PickupDay::THURSDAY => 'Jeudi',
+                    \App\Enum\PickupDay::FRIDAY => 'Vendredi',
                     default => $value,
                 }),
 
@@ -113,7 +113,7 @@ class OrderCrudController extends AbstractCrudController
                     ->setLabel('Jour de retrait')
                     ->setChoices([
                         'Mardi' => PickupDay::TUESDAY,
-                        'Jeudi' => PickupDay::THURSDAY,
+                        'Vendredi' => PickupDay::FRIDAY,
                     ])
             );
     }

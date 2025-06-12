@@ -19,7 +19,7 @@ class ProductClientTabService
      * Gets products ordered for a given pickup day, the users who placed orders,
      * and a quantity mapping by user and product.
      *
-     * @param PickupDay $pickupDay The selected pickup day (Tuesday or Thursday).
+     * @param PickupDay $pickupDay The selected pickup day (Tuesday or FRIDAY).
      *
      * @return array{
      *     0: Product[],                   // List of Products ordered on that day
