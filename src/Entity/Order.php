@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Enum\PickupDay;
 use App\Repository\Admin\OrderRepository;
+use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -24,8 +26,11 @@ class Order
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(enumType: PickupDay::class)]
-    private ?PickupDay $pickup = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: false)]
+    private \DateTimeImmutable $pickupDate;
+
+    #[ORM\Column(type: 'smallint')]
+    private int $pickupDay;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $done = false;
@@ -40,8 +45,8 @@ class Order
     #[ORM\OneToMany(
         targetEntity: ProductOrder::class,
         mappedBy: 'order',
-        cascade: ['persist'],
-        orphanRemoval: false
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
     )]
     private Collection $productOrders;
 
@@ -84,16 +89,36 @@ class Order
         return $this;
     }
 
-    public function getPickup(): ?PickupDay
+    public function getPickupDate(): \DateTimeImmutable
     {
-        return $this->pickup;
+        return $this->pickupDate;
     }
 
-    public function setPickup(PickupDay $pickup): static
+    /**
+     * Définit la date de retrait et en calcule automatiquement le jour de semaine.
+     *
+     * @param DateTimeImmutable $pickupDate date complète (ex : 2025-06-17)
+     * @return $this
+     */
+    public function setPickupDate(DateTimeImmutable $pickupDate): static
     {
-        $this->pickup = $pickup;
+        // On normalise en zone Europe/Paris
+        $dt = $pickupDate->setTimezone(new DateTimeZone('Europe/Paris'));
+
+        // On stocke la date
+        $this->pickupDate = $dt;
+
+        // On dérive le jour de semaine au format 1 (lundi) … 7 (dimanche)
+        $this->pickupDay = (int) $dt->format('N');
 
         return $this;
+    }
+
+
+
+    public function getPickupDay(): int
+    {
+        return $this->pickupDay;
     }
 
     public function isDone(): bool
