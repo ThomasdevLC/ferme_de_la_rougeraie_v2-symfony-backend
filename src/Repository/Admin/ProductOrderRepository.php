@@ -39,6 +39,8 @@ class ProductOrderRepository extends ServiceEntityRepository
      * for a specific pickup day  for non-deleted orders.
      */
     public function getUserProductQuantitiesByPickupDay(PickupDay $pickupDay): array
+
+
     {
         return $this->createQueryBuilder('po')
             ->select(
