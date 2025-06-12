@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Dto\Order\Create;
+use DateTimeImmutable;
+
 /**
  * Data required to create a new order.
  *
@@ -11,6 +13,6 @@ class OrderCreateDto
 {
     public function __construct(
         public array $items,
-        public string $pickup
+        public DateTimeImmutable $pickupDate,
     ) {}
 }

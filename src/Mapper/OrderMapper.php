@@ -8,73 +8,71 @@ use App\Dto\Order\Display\OrderItemDto;
 use App\Entity\Order;
 use App\Entity\ProductOrder;
 use App\Entity\User;
-use App\Enum\PickupDay;
 
 class OrderMapper
 {
-
     public static function toDto(Order $order): OrderDetailsDto
     {
         $items = [];
-
         foreach ($order->getProductOrders() as $po) {
-            $product = $po->getProduct();
-
-            $quantity = $po->getQuantity();
-            $unitPrice = $po->getUnitPrice() !== null ? $po->getUnitPrice() / 100 : 0.0;
-
+            $unitPriceEuros = $po->getUnitPrice() / 100;
             $items[] = new OrderItemDto(
-                productName: $product->getName(),
-                quantity: $quantity,
-                unitPrice: round($unitPrice, 2),
-                lineTotal: round($quantity * $unitPrice, 2)
+                productName: $po->getProduct()->getName(),
+                quantity:    (float) $po->getQuantity(),
+                unitPrice:   round($unitPriceEuros, 2),
+                lineTotal:   round($unitPriceEuros * $po->getQuantity(), 2)
             );
         }
 
-
         return new OrderDetailsDto(
-            id: $order->getId(),
-            total: round($order->getTotal() !== null ? $order->getTotal() / 100 : 0.0, 2),
-            pickup: $order->getPickup()?->value,
-            createdAt: $order->getCreatedAt(),
-            done: $order->isDone(),
-            items: $items
+            id:         $order->getId(),
+            total:      round($order->getTotal() / 100, 2),
+            pickupDate: $order->getPickupDate(),
+            pickupDay:  $order->getPickupDay(),
+            createdAt:  $order->getCreatedAt(),
+            done:       $order->isDone(),
+            items:      $items
         );
     }
 
+    /**
+     * Builds an Order entity from the creation DTO.
+     *
+     * @param OrderCreateDto        $dto         Contains the list of cart items and the desired pickup date
+     * @param User                  $user        The customer placing the order
+     * @param array<string,mixed>[] $productData Array of ['product' => Product, 'quantity' => int]
+     */
     public static function fromDto(
-        OrderCreateDto $orderCreateDto,
+        OrderCreateDto $dto,
         User $user,
         array $productData
     ): Order {
         $order = new Order();
-        $order->setUser($user)
-            ->setCreatedAt(new \DateTimeImmutable())
-            ->setPickup(PickupDay::from($orderCreateDto->pickup))
+        $order
+            ->setUser($user)
+            ->setCreatedAt(new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')))
+            ->setPickupDate($dto->pickupDate)
             ->setDone(false);
 
         $total = 0;
-
         foreach ($productData as $entry) {
-            $product = $entry['product'];
+            $product  = $entry['product'];
             $quantity = $entry['quantity'];
 
-            $productOrder = new ProductOrder();
-            $productOrder
+            $po = new ProductOrder();
+            $po
+                ->setOrder($order)
                 ->setProduct($product)
                 ->setQuantity($quantity)
-                ->setUnitPrice($product->getPrice())
-                ->setOrder($order);
+                ->setUnitPrice($product->getPrice());
 
-            $order->addProductOrder($productOrder);
+            $order->addProductOrder($po);
 
-            $lineTotal = (int) round($quantity * $product->getPrice());
-            $total += $lineTotal;
+            $total += $quantity * $product->getPrice();
         }
 
         $order->setTotal($total);
 
         return $order;
     }
-
 }
