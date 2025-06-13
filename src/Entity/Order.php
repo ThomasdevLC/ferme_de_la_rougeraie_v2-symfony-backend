@@ -95,20 +95,15 @@ class Order
     }
 
     /**
-     * Définit la date de retrait et en calcule automatiquement le jour de semaine.
      *
-     * @param DateTimeImmutable $pickupDate date complète (ex : 2025-06-17)
+     * @param DateTimeImmutable $pickupDate
      * @return $this
      */
     public function setPickupDate(DateTimeImmutable $pickupDate): static
     {
-        // On normalise en zone Europe/Paris
         $dt = $pickupDate->setTimezone(new DateTimeZone('Europe/Paris'));
-
-        // On stocke la date
         $this->pickupDate = $dt;
 
-        // On dérive le jour de semaine au format 1 (lundi) … 7 (dimanche)
         $this->pickupDay = (int) $dt->format('N');
 
         return $this;

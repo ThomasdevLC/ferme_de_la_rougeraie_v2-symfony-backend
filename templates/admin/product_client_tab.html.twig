@@ -4,19 +4,19 @@
     <div class="table-responsive pt-5">
 
         {% set pickupDays = {
-            'TUESDAY':  'Mardi',
-            'THURSDAY': 'Jeudi'
+            2: 'Mardi',
+            5: 'Vendredi'
         } %}
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="title fw-bold fs-3 m-0">📋 Tableau</h1>
 
             <ul class="nav nav-pills">
-                {% for value, label in pickupDays %}
+                {% for dayNum, label in pickupDays %}
                     <li class="nav-item">
                         <a
-                                href="{{ ea_url().set('pickup', value) }}"
-                                class="nav-link {{ selectedPickupDay.value == value ? 'active' : '' }}"
+                                href="{{ ea_url().set('pickup', dayNum) }}"
+                                class="nav-link {{ selectedPickupDay == dayNum ? 'active' : '' }}"
                         >
                             {{ label }}
                         </a>

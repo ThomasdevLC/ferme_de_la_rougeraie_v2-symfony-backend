@@ -11,42 +11,42 @@ class ProductClientTabService
 {
     public function __construct(
         private ProductOrderRepository $productOrderRepository,
-        private ProductService $productService,
-        private UserRepository $userRepository
+        private ProductService         $productService,
+        private UserRepository         $userRepository
     ) {}
 
     /**
-     * Gets products ordered for a given pickup day, the users who placed orders,
-     * and a quantity mapping by user and product.
+     * Gets products ordered for a given pickup weekday,
+     * the users who placed orders, and a quantity mapping.
      *
-     * @param PickupDay $pickupDay The selected pickup day (Tuesday or FRIDAY).
+     * @param int $weekday The selected pickup weekday (1 = Monday … 7 = Sunday)
      *
      * @return array{
-     *     0: Product[],                   // List of Products ordered on that day
-     *     1: User[],                      // List of Users who placed orders
-     *     2: array<int, array<int, int>>  // Quantities: [userId][productId] => ordered quantity
+     *     0: Product[],                   // Products ordered on that day
+     *     1: User[],                      // Users who placed orders
+     *     2: array<int, array<int, int>>  // Quantities grid [userId][productId] => qty
      * }
      */
-    public function getProductClientQuantities(PickupDay $pickupDay): array
+    public function getProductClientQuantitiesByWeekday(int $weekday): array
     {
-        // 1) Fetch product IDs that have at least one order on the selected pickup day
+        // 1) IDs de produits commandés ce jour
         $productIds = $this->productOrderRepository
-            ->getProductIdsByPickupDay($pickupDay);
+            ->getProductIdsByPickupDay($weekday);
 
-        // 2) Load the corresponding Product entities
+        // 2) Entités Product pour l’admin
         $products = $this->productService
             ->getProductAdminDtosByIds($productIds);
 
-        // 3) Fetch  quantity data
+        // 3) Quantités brutes [userId, productId, totalQuantity]
         $rawQuantities = $this->productOrderRepository
-            ->getUserProductQuantitiesByPickupDay($pickupDay);
+            ->getUserProductQuantitiesByPickupDay($weekday);
 
-        // 4) Build the [userId][productId] => quantity grid
+        // 4) Construction de la grille [userId][productId] => quantité
         $quantitiesTab = $this->buildQuantitiesTab($rawQuantities);
 
-        // 5) Load the Users associated with the orders
+        // 5) Chargement des utilisateurs
         $userIds = array_keys($quantitiesTab);
-        $users = $userIds
+        $users   = $userIds
             ? $this->userRepository->findUsersByIds($userIds)
             : [];
 
@@ -57,18 +57,15 @@ class ProductClientTabService
      * Converts raw query results into a structured array [userId][productId] => quantity.
      *
      * @param array<array{userId: int, productId: int, totalQuantity: string}> $rawData
-     *     The raw data retrieved from the database.
-     *
      * @return array<int, array<int, int>>
-     *     Structured format: [userId][productId] = ordered quantity
      */
     private function buildQuantitiesTab(array $rawData): array
     {
         $tab = [];
         foreach ($rawData as $row) {
-            $userId = (int) $row['userId'];
+            $userId    = (int) $row['userId'];
             $productId = (int) $row['productId'];
-            $qty = (int) $row['totalQuantity'];
+            $qty       = (int) $row['totalQuantity'];
             $tab[$userId][$productId] = $qty;
         }
         return $tab;

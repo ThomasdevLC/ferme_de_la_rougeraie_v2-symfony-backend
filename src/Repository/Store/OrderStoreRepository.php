@@ -36,6 +36,17 @@ class OrderStoreRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findOneByIdAndUser(int $orderId, User $user): ?Order
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.id = :id')
+            ->andWhere('o.user = :user')
+            ->setParameter('id', $orderId)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 
     public function save(Order $order, bool $flush = true): void
     {
