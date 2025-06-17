@@ -8,7 +8,6 @@ use App\Entity\Product;
 use App\Entity\ProductOrder;
 use App\Entity\User;
 use App\Enum\MessageType;
-use App\Enum\PickupDay;
 use App\Enum\ProductUnit;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -30,17 +29,27 @@ class AppFixtures extends Fixture
     {
         $faker = Factory::create('fr_FR');
 
-        $produceNames = [
-            'Carotte',
-            'Tomate',
-            'Pomme',
-            'Laitue',
-            'Concombre',
-            'Asperges',
-            'Fraise',
-            'Poivron',
-            'Aubergine',
-            'Courgette',
+        $produceConfig = [
+            'Carotte'     => ProductUnit::BUNCH,
+            'Tomate'      => ProductUnit::KG,
+            'Pomme'       => ProductUnit::PIECE,
+            'Laitue'      => ProductUnit::PIECE,
+            'Persil'      => ProductUnit::BUNCH,
+            'Concombre'   => ProductUnit::PIECE,
+            'Asperges'    => ProductUnit::BUNDLE,
+            'Fraise'      => ProductUnit::KG,
+            'Poivron'     => ProductUnit::KG,
+            'Aubergine'   => ProductUnit::KG,
+            'Courgette'   => ProductUnit::KG,
+            'Brocoli'     => ProductUnit::KG,
+            'Chou-fleur'  => ProductUnit::PIECE,
+            'Navet'       => ProductUnit::KG,
+            'Radis'       => ProductUnit::BUNCH,
+            'Épinard'     => ProductUnit::KG,
+            'Poire'       => ProductUnit::KG,
+            'Raisin'      => ProductUnit::KG,
+            'Citron'      => ProductUnit::PIECE,
+            'Courge'      => ProductUnit::KG,
         ];
 
         // --- Création de l'admin ---
@@ -69,25 +78,16 @@ class AppFixtures extends Fixture
 
         // --- Création de produits ---
         $products = [];
-        for ($i = 0; $i < 10; $i++) {
+        foreach ($produceConfig as $name => $unit) {
             $product = new Product();
+            $product->setName($name);
+            $product->setUnit($unit);
 
-            $product->setName($faker->randomElement($produceNames));
-
-            // Prix en centimes
+            // Prix en centimes (toujours aléatoire si vous le souhaitez)
             $euros = $faker->numberBetween(0, 9);
             $cents = $faker->randomElement([0, 25, 40, 50, 55, 65, 75, 85]);
             $product->setPrice($euros * 100 + $cents);
 
-            // Unité
-            $unit = $faker->randomElement([
-                ProductUnit::PIECE,
-                ProductUnit::BUNDLE,
-                ProductUnit::BUNCH,
-                ProductUnit::LITER,
-                ProductUnit::KG,
-            ]);
-            $product->setUnit($unit);
 
             if ($unit === ProductUnit::KG) {
                 $product->setInter($faker->randomElement([0.1, 0.2, 0.25, 0.5]));
@@ -105,6 +105,7 @@ class AppFixtures extends Fixture
             $manager->persist($product);
             $products[] = $product;
         }
+
 
         // --- Création de commandes ---
         foreach ($users as $user) {
