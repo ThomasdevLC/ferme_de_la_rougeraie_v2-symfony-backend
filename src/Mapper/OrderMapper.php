@@ -31,6 +31,7 @@ class OrderMapper
             pickupDay:  $order->getPickupDay(),
             createdAt:  $order->getCreatedAt(),
             done:       $order->isDone(),
+            isEditable:  $order->isEditable(),
             items:      $items
         );
     }

@@ -18,6 +18,7 @@ readonly class OrderDetailsDto
         public int                 $pickupDay,
         public DateTimeImmutable   $createdAt,
         public bool                $done,
+        public bool                $isEditable,
         public array               $items,
     ) {}
 }
