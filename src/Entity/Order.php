@@ -162,7 +162,6 @@ class Order
     public function removeProductOrder(ProductOrder $productOrder): static
     {
         if ($this->productOrders->removeElement($productOrder)) {
-            // set the owning side to null (unless already changed)
             if ($productOrder->getOrder() === $this) {
                 $productOrder->setOrder(null);
             }
@@ -182,4 +181,23 @@ class Order
 
         return $this;
     }
+
+    /**
+     * Returns true if the order can still be edited,
+     * i.e. now is before the day-before-pickup at 21h00 cutoff.
+     */
+    public function isEditable(): bool
+    {
+        $tz     = new DateTimeZone('Europe/Paris');
+        $pickup = $this->pickupDate->setTimezone($tz);
+
+        $cutoff = $pickup
+            ->modify('-1 day')
+            ->setTime(21, 0, 0);
+
+        $now = new DateTimeImmutable('now', $tz);
+
+        return $now <= $cutoff;
+    }
+
 }
