@@ -3,6 +3,7 @@
 namespace App\Service\Store;
 
 use App\Dto\Order\Create\OrderCreateDto;
+use App\Dto\Order\Display\OrderDetailsDto;
 use App\Entity\Order;
 use App\Entity\ProductOrder;
 use App\Entity\User;
@@ -32,6 +33,21 @@ class OrderStoreService
             $orders
         );
     }
+
+    /**
+     * @throws AccessDeniedException if order not found or not owned by user
+     */
+    public function getOneOrderForUser(int $orderId, User $user): OrderDetailsDto
+    {
+        $order = $this->orderStoreRepository->findOneByIdAndUser($orderId, $user);
+        if (!$order) {
+            throw new AccessDeniedException('Order not found or unauthorized.');
+        }
+
+        return OrderMapper::toDto($order);
+    }
+
+
 
     /**
      * @throws DomainException if cutoff is passed
@@ -120,7 +136,7 @@ class OrderStoreService
     }
 
     /**
-     * Ensure now is before the cutoff: the day before pickup at 21:00 (Europe/Paris)
+     * Ensure order (now) is before the cutoff: the day before pickup at 21:00
      *
      * @throws DomainException
      */
