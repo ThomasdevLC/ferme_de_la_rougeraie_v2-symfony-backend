@@ -52,37 +52,36 @@ class OrderCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         $fields = [
-            IdField::new('id'),
-            DateTimeField::new('createdAt', 'Date de commande'),
-            TextField::new('user.firstName', 'Prénom'),
-            TextField::new('user.lastName', 'Nom'),
-            MoneyField::new('total', 'Prix total')->setCurrency('EUR'),
+            IdField::new('id')->hideOnDetail(),
+            DateTimeField::new('createdAt', 'Date de commande')->hideOnDetail(),
+            TextField::new('user.firstName', 'Prénom')->hideOnDetail(),
+            TextField::new('user.lastName', 'Nom')->hideOnDetail(),
+            MoneyField::new('total', 'Prix total')->setCurrency('EUR')->hideOnDetail(),
 
-            ChoiceField::new('pickup')
+            ChoiceField::new('pickupDay')
                 ->setLabel('Jour de retrait')
                 ->renderAsBadges()
-                ->formatValue(fn($value) => match($value) {
-                    \App\Enum\PickupDay::TUESDAY => 'Mardi',
-                    \App\Enum\PickupDay::FRIDAY => 'Vendredi',
-                    default => $value,
-                }),
+                ->setChoices(
+                    array_combine(
+                        array_map(fn(PickupDay $d) => $d->label(), PickupDay::cases()),
+                        array_map(fn(PickupDay $d) => $d->value,   PickupDay::cases())
+                    )
+                )
+                ->formatValue(fn($value) => PickupDay::fromWeekday((int) $value)->label())->hideOnDetail(),
 
-            BooleanField::new('done', 'Traitée')->renderAsSwitch(true),
+            BooleanField::new('done', 'Traitée')->renderAsSwitch(true)->hideOnDetail(),
         ];
 
         if (Crud::PAGE_DETAIL === $pageName) {
-            return [
+            $fields[] = CollectionField::new('productOrders')
+                ->setLabel(false)
+                ->setTemplatePath('admin/user_order.html.twig')
+                ->onlyOnDetail();
+        }
 
-                CollectionField::new('productOrders',)
-                    ->onlyOnDetail()
-                    ->setLabel(false)
-                    ->setTemplatePath('admin/user_order.html.twig'),
-            ];}
-
-
-
-            return $fields;
+        return $fields;
     }
+
 
     public function configureActions(Actions $actions): Actions
     {
@@ -109,11 +108,11 @@ class OrderCrudController extends AbstractCrudController
                     ->setLabel('Traitée')
             )
             ->add(
-                ChoiceFilter::new('pickup')
+                ChoiceFilter::new('pickupDay')
                     ->setLabel('Jour de retrait')
                     ->setChoices([
-                        'Mardi' => PickupDay::TUESDAY,
-                        'Vendredi' => PickupDay::FRIDAY,
+                        'Mardi'    => PickupDay::TUESDAY->value,
+                        'Vendredi' => PickupDay::FRIDAY->value,
                     ])
             );
     }
