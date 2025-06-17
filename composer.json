@@ -79,6 +79,13 @@
         "symfony/polyfill-php82": "*"
     },
     "scripts": {
+
+        "create-db": [
+            "php bin/console make:migration",
+            "php bin/console doctrine:migrations:migrate --no-interaction",
+            "php bin/console doctrine:fixtures:load --no-interaction"
+        ],
+
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
@@ -114,3 +121,4 @@
         "symfony/web-profiler-bundle": "7.2.*"
     }
 }
+
