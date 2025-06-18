@@ -8,9 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 
-/**
- * @extends ServiceEntityRepository<Order>
- */
+
 class OrderStoreRepository extends ServiceEntityRepository
 {
     private EntityManagerInterface $em;
@@ -31,6 +29,10 @@ class OrderStoreRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('o')
             ->andWhere('o.user = :user')
             ->setParameter('user', $user)
+            ->leftJoin('o.productOrders', 'po')
+            ->addSelect('po')
+            ->leftJoin('po.product', 'p')
+            ->addSelect('p')
             ->orderBy('o.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -43,9 +45,14 @@ class OrderStoreRepository extends ServiceEntityRepository
             ->andWhere('o.user = :user')
             ->setParameter('id', $orderId)
             ->setParameter('user', $user)
+            ->leftJoin('o.productOrders', 'po')
+            ->addSelect('po')
+            ->leftJoin('po.product', 'p')
+            ->addSelect('p')
             ->getQuery()
             ->getOneOrNullResult();
     }
+
 
 
     public function save(Order $order, bool $flush = true): void
