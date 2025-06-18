@@ -19,6 +19,7 @@ class OrderStoreService
     public function __construct(
         private OrderStoreRepository $orderStoreRepository,
         private StockStoreService    $stockService,
+        private OrderMapper          $mapper
     ) {}
 
     /**
@@ -29,7 +30,7 @@ class OrderStoreService
     {
         $orders = $this->orderStoreRepository->findOrdersByUser($user);
         return array_map(
-            fn(Order $order) => OrderMapper::toDto($order),
+            fn(Order $o) => $this->mapper->toDto($o),
             $orders
         );
     }
@@ -44,7 +45,7 @@ class OrderStoreService
             throw new AccessDeniedException('Order not found or unauthorized.');
         }
 
-        return OrderMapper::toDto($order);
+        return $this->mapper->toDto($order);
     }
 
 
@@ -54,14 +55,11 @@ class OrderStoreService
      */
     public function createOrderFromCart(OrderCreateDto $dto, User $user): Order
     {
-        // 1) Récupération directe de la date envoyée par le front
         $pickupDate = $dto->pickupDate
             ->setTimezone(new DateTimeZone('Europe/Paris'));
 
-        // 2) Vérification du cutoff (veille 21h)
-        $this->assertWithinOrderWindow($pickupDate);
+        $this->checkPickupDateWithinWindow($pickupDate);
 
-        // 3) Préparation des lignes produits
         $productData = [];
         foreach ($dto->items as $item) {
             $product = $this->stockService
@@ -73,14 +71,8 @@ class OrderStoreService
             ];
         }
 
-        // 4) Construction de l'entité via le mapper
-        $order = OrderMapper::fromDto(
-            $dto,
-            $user,
-            $productData
-        );
+        $order = $this->mapper->fromDto($dto, $user, $productData);
 
-        // 5) Persist
         $this->orderStoreRepository->save($order);
 
         return $order;
@@ -98,21 +90,18 @@ class OrderStoreService
             throw new AccessDeniedException('Order not found or unauthorized.');
         }
 
-        // Revert old stock & clear lines
         foreach ($order->getProductOrders() as $oldLine) {
             $this->stockService
                 ->increaseStock($oldLine->getProduct()->getId(), $oldLine->getQuantity());
             $order->removeProductOrder($oldLine);
         }
 
-        // Nouvelle date de pickup
         $newPickupDate = $dto->pickupDate
             ->setTimezone(new DateTimeZone('Europe/Paris'));
 
-        $this->assertWithinOrderWindow($newPickupDate);
+        $this->checkPickupDateWithinWindow($newPickupDate);
         $order->setPickupDate($newPickupDate);
 
-        // Recréer les lignes et recalculer le total
         $total = 0;
         foreach ($dto->items as $item) {
             $product = $this->stockService
@@ -140,12 +129,11 @@ class OrderStoreService
      *
      * @throws DomainException
      */
-    private function assertWithinOrderWindow(DateTimeImmutable $pickupDate): void
+    private function checkPickupDateWithinWindow(DateTimeImmutable $pickupDate): void
     {
         $tz     = new DateTimeZone('Europe/Paris');
         $pickup = $pickupDate->setTimezone($tz);
 
-        // Cutoff = veille à 21h
         $cutoff = $pickup
             ->modify('-1 day')
             ->setTime(21, 0, 0);
@@ -153,7 +141,7 @@ class OrderStoreService
         $now = new DateTimeImmutable('now', $tz);
         if ($now > $cutoff) {
             throw new DomainException(
-                'It is too late to place or modify an order for this pickup date.'
+                'Vous ne pouvez plus modifier ou créer de commande pour cette date de retrait '
             );
         }
     }
