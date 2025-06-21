@@ -33,7 +33,7 @@ class OrderMapper
                 ProductUnit::KG     => 'Kilo',
                 ProductUnit::LITER  => 'Litre',
                 ProductUnit::PIECE  => 'Pièce',
-                ProductUnit::BUNDLE => 'Sachet',
+                ProductUnit::BUNDLE => 'Bouquet',
                 ProductUnit::BUNCH  => 'Botte',
             };
 
@@ -94,19 +94,22 @@ class OrderMapper
             $product  = $entry['product'];
             $quantity = $entry['quantity'];
 
+            $unitPrice = $product->getPrice();
+
+            $lineTotal = (int) round($unitPrice * $quantity);
+
             $po = new ProductOrder();
             $po
                 ->setOrder($order)
                 ->setProduct($product)
                 ->setQuantity($quantity)
-                ->setUnitPrice($product->getPrice());
-
+                ->setUnitPrice($unitPrice);
             $order->addProductOrder($po);
 
-            $total += $quantity * $product->getPrice();
+            $total += $lineTotal;
         }
-
         $order->setTotal($total);
+
 
         return $order;
     }
