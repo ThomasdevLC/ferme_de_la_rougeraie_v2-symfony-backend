@@ -82,8 +82,8 @@ class OrderStoreService
      * @throws AccessDeniedException if order not found or not owned by user
      * @throws DomainException       if cutoff is passed
      */
-    public function editOrder(int $orderId, OrderCreateDto $dto, User $user): Order
-    {
+   public function editOrder(int $orderId, OrderCreateDto $dto, User $user): OrderDetailsDto    {
+
         $order = $this->orderStoreRepository->findOneByIdAndUser($orderId, $user);
 
         if (!$order) {
@@ -121,13 +121,12 @@ class OrderStoreService
 
         $this->orderStoreRepository->save($order);
 
-        return $order;
+        return $this->mapper->toDto($order);
     }
 
     /**
      * Ensure order (now) is before the cutoff: the day before pickup at 21:00
      *
-     * @throws DomainException
      */
     private function checkPickupDateWithinWindow(DateTimeImmutable $pickupDate): void
     {
