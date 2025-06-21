@@ -27,6 +27,9 @@ class OrderStoreController extends AbstractController
         return parent::getUser();
     }
 
+    /**
+     * GET /api/orders
+     */
 
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(OrderStoreService $orderStoreService): JsonResponse
@@ -139,13 +142,11 @@ class OrderStoreController extends AbstractController
         }
 
         try {
-            // 1) Convertir la date reçue en DateTimeImmutable
             $pickupDate = new DateTimeImmutable(
                 $data['pickupDate'],
                 new DateTimeZone('Europe/Paris')
             );
 
-            // 2) Construire le DTO avec l’objet DateTimeImmutable
             $dto = new OrderCreateDto(
                 items: array_map(
                     fn(array $item) => new CartItemDto(
@@ -157,9 +158,7 @@ class OrderStoreController extends AbstractController
                 pickupDate: $pickupDate
             );
 
-            // 3) Appeler le service d’édition
-            $order    = $orderStoreService->editOrder($id, $dto, $user);
-            $orderDto = OrderMapper::toDto($order);
+            $orderDto     = $orderStoreService->editOrder($id, $dto, $user);
 
             $response = new JsonResponse();
             $response->setEncodingOptions(
