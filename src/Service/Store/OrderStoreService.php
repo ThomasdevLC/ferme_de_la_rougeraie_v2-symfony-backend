@@ -5,7 +5,6 @@ namespace App\Service\Store;
 use App\Dto\Order\Create\OrderCreateDto;
 use App\Dto\Order\Display\OrderDetailsDto;
 use App\Entity\Order;
-use App\Entity\ProductOrder;
 use App\Entity\User;
 use App\Mapper\OrderMapper;
 use App\Repository\Store\OrderStoreRepository;
@@ -82,12 +81,11 @@ class OrderStoreService
      * @throws AccessDeniedException if order not found or not owned by user
      * @throws DomainException       if cutoff is passed
      */
-   public function editOrder(int $orderId, OrderCreateDto $dto, User $user): OrderDetailsDto    {
-
+    public function editOrder(int $orderId, OrderCreateDto $dto, User $user): OrderDetailsDto
+    {
         $order = $this->orderStoreRepository->findOneByIdAndUser($orderId, $user);
-
-        if (!$order) {
-            throw new AccessDeniedException('Order not found or unauthorized.');
+        if (! $order) {
+            throw new AccessDeniedException('Cette commande n\'existe pas ou vous n\'êtes pas autorisé à la modifier.');
         }
 
         foreach ($order->getProductOrders() as $oldLine) {
@@ -98,29 +96,21 @@ class OrderStoreService
 
         $newPickupDate = $dto->pickupDate
             ->setTimezone(new DateTimeZone('Europe/Paris'));
-
         $this->checkPickupDateWithinWindow($newPickupDate);
         $order->setPickupDate($newPickupDate);
 
-        $total = 0;
+        $productData = [];
         foreach ($dto->items as $item) {
-            $product = $this->stockService
-                ->checkAndDecreaseStock($item->productId, $item->quantity);
-
-            $line = new ProductOrder();
-            $line
-                ->setOrder($order)
-                ->setProduct($product)
-                ->setQuantity($item->quantity)
-                ->setUnitPrice($product->getPrice());
-
-            $order->addProductOrder($line);
-            $total += $item->quantity * $product->getPrice();
+            $productData[] = [
+                'product'  => $this->stockService
+                    ->checkAndDecreaseStock($item->productId, $item->quantity),
+                'quantity' => $item->quantity,
+            ];
         }
-        $order->setTotal($total);
+
+        $this->mapper->updateFromDto($dto, $order, $productData);
 
         $this->orderStoreRepository->save($order);
-
         return $this->mapper->toDto($order);
     }
 
