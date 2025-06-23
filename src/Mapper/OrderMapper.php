@@ -113,4 +113,31 @@ class OrderMapper
 
         return $order;
     }
+
+    public function updateFromDto(
+        OrderCreateDto $dto,
+        Order $order,
+        array $productData
+    ): void {
+
+        $total = 0;
+        foreach ($productData as $entry) {
+            $product   = $entry['product'];
+            $quantity  = $entry['quantity'];
+            $unitPrice = $product->getPrice();
+
+            $po = (new ProductOrder())
+                ->setOrder($order)
+                ->setProduct($product)
+                ->setQuantity($quantity)
+                ->setUnitPrice($unitPrice);
+
+            $order->addProductOrder($po);
+            $total += (int) round($unitPrice * $quantity);
+        }
+
+        $order->setTotal($total);
+    }
+
+
 }
