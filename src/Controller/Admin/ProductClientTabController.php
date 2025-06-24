@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 
 /**
- * Displays the product-client quantities table for a specific pickup day (Tuesday or Thursday).
+ * Displays the product-client quantities table for a specific pickup day (Tuesday or FRIDAY).
  *
  * @Route("/admin/product-client-tab", name="admin_product_client_tab")
  *
@@ -25,20 +25,28 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ProductClientTabController extends AbstractController
 {
+// src/Controller/Admin/ProductClientTabController.php
+
     #[Route('/admin/product-client-tab', name: 'admin_product_client_tab')]
     public function index(Request $request, ProductClientTabService $service): Response
     {
-        $pickupValue = $request->query->get('pickup', PickupDay::TUESDAY->value);
-        $pickupDay   = PickupDay::from($pickupValue);
+        // Récupère ?pickup=2 ou 5, défaut à 2 (Mardi)
+        $weekday = (int) $request->query->get('pickup', 2);
+
+        // On s’assure d’être sur 2 ou 5
+        if (!in_array($weekday, [2,5], true)) {
+            $weekday = 2;
+        }
 
         [$products, $users, $quantitiesTab] = $service
-            ->getProductClientQuantities($pickupDay);
+            ->getProductClientQuantitiesByWeekday($weekday);
 
         return $this->render('admin/product_client_tab.html.twig', [
             'products'          => $products,
             'users'             => $users,
             'quantitiesTab'     => $quantitiesTab,
-            'selectedPickupDay' => $pickupDay,
+            'selectedPickupDay' => $weekday,               // int, pas enum
         ]);
     }
+
 }

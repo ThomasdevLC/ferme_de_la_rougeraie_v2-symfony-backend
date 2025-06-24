@@ -80,7 +80,10 @@ class ProductOrder
         return $this->order;
     }
 
-    public function setOrder(Order $order): static
+    /**
+     * @param Order|null $order
+     */
+    public function setOrder(?Order $order): static
     {
         $this->order = $order;
         return $this;

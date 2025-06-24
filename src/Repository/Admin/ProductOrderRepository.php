@@ -20,13 +20,13 @@ class ProductOrderRepository extends ServiceEntityRepository
      *
      * @return int[]
      */
-    public function getProductIdsByPickupDay(PickupDay $pickupDay): array
+    public function getProductIdsByPickupDay(int  $pickupDay): array
     {
         $rows = $this->createQueryBuilder('po')
             ->select('DISTINCT IDENTITY(po.product) AS productId')
             ->innerJoin('po.order', 'o')
             ->andWhere('o.isDeleted = false')
-            ->andWhere('o.pickup = :pickupDay')
+            ->andWhere('o.pickupDay  = :pickupDay')
             ->setParameter('pickupDay', $pickupDay)
             ->getQuery()
             ->getArrayResult();
@@ -38,7 +38,9 @@ class ProductOrderRepository extends ServiceEntityRepository
      * Returns the calculated product quantities ordered by each user
      * for a specific pickup day  for non-deleted orders.
      */
-    public function getUserProductQuantitiesByPickupDay(PickupDay $pickupDay): array
+    public function getUserProductQuantitiesByPickupDay(int $pickupDay): array
+
+
     {
         return $this->createQueryBuilder('po')
             ->select(
@@ -48,7 +50,7 @@ class ProductOrderRepository extends ServiceEntityRepository
             )
             ->innerJoin('po.order', 'o')
             ->andWhere('o.isDeleted = false')
-            ->andWhere('o.pickup = :pickupDay')
+            ->andWhere('o.pickupDay  = :pickupDay')
             ->setParameter('pickupDay', $pickupDay)
             ->groupBy('userId', 'productId')
             ->getQuery()

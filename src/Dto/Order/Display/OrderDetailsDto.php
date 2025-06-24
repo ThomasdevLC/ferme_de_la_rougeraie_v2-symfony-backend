@@ -2,6 +2,8 @@
 
 namespace App\Dto\Order\Display;
 
+use DateTimeImmutable;
+
 readonly class OrderDetailsDto
 {
     /**
@@ -10,11 +12,13 @@ readonly class OrderDetailsDto
      * @param OrderItemDto[] $items
      */
     public function __construct(
-        public int $id,
-        public float  $total,
-        public string $pickup,
-        public \DateTimeImmutable $createdAt,
-        public bool $done,
-        public array $items,
+        public int                 $id,
+        public float               $total,
+        public DateTimeImmutable   $pickupDate,
+        public int                 $pickupDay,
+        public DateTimeImmutable   $createdAt,
+        public bool                $done,
+        public bool                $isEditable,
+        public array               $items,
     ) {}
 }

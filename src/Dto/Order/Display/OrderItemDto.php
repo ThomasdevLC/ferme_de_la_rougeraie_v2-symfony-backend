@@ -1,6 +1,8 @@
 <?php
 namespace App\Dto\Order\Display;
 
+use App\Dto\Product\ProductDto;
+
 /**
  *  A single line item in an order for display.
  *
@@ -8,7 +10,7 @@ namespace App\Dto\Order\Display;
 readonly class OrderItemDto
 {
     public function __construct(
-        public string $productName,
+        public ProductDto $product,
         public float $quantity,
         public float  $unitPrice,
         public float $lineTotal

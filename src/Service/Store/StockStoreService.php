@@ -4,11 +4,14 @@ namespace App\Service\Store;
 
 use App\Entity\Product;
 use App\Repository\Admin\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use DomainException;
 
 class StockStoreService
 {
     public function __construct(
-        private ProductRepository $productRepository
+        private ProductRepository $productRepository,
+        private EntityManagerInterface $em,
     ) {}
 
     /**
@@ -35,5 +38,20 @@ class StockStoreService
         }
 
         return $product;
+    }
+
+    public function increaseStock(int $productId, float $qty): void
+    {
+        $product = $this->productRepository->find($productId);
+        if (!$product) {
+            throw new DomainException("Produit #{$productId} introuvable.");
+        }
+        $newStock = ($product->getStock() ?? 0) + $qty;
+        $product->setStock($newStock);
+
+        if ($newStock > 0) {
+            $product->setIsDisplayed(true);
+        }
+
     }
 }
