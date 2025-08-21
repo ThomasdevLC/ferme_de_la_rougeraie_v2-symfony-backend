@@ -56,14 +56,29 @@ class ProductCrudController extends AbstractCrudController
     }
 
 
+
     public function configureCrud(Crud $crud): Crud
     {
+
+        $soldOutNames = $this->productService->getSoldOutProducts();
+
+        if (!empty($soldOutNames)) {
+            $this->addFlash(
+                'warning',
+                sprintf(' Produits épuisés : %s', implode(', ', $soldOutNames))
+            );
+        }
+
+
         return $crud
             ->setEntityLabelInSingular('🥕 Produit')
             ->setEntityLabelInPlural('🥕 Produits')
             ->setPageTitle(Crud::PAGE_INDEX, '🥕 Produits')
             ->setPaginatorPageSize(10)
-            ->setDefaultSort(['updatedAt' => 'DESC']);
+            ->setDefaultSort([
+                'isDisplayed' => 'DESC',
+                'updatedAt'   => 'DESC',
+            ]);
     }
 
     public function configureFields(string $pageName): iterable
@@ -157,8 +172,11 @@ class ProductCrudController extends AbstractCrudController
 
             BooleanField::new('isDisplayed')->setLabel('Affiché'),
 
+            TextField::new('soldOutLabel', 'État')
+                ->onlyOnIndex(),
 
-            AssociationField::new('user')
+
+        AssociationField::new('user')
                 ->hideOnForm()
                 ->hideOnIndex(),
         ];

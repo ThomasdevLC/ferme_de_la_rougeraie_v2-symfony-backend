@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Message;
 use App\Entity\Order;
 use App\Entity\Product;
+use App\Repository\Admin\ProductRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -16,7 +17,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
-    public function index(): Response
+    public function index( ): Response
     {
         /** @var AdminUrlGenerator $adminUrlGenerator */
         $adminUrlGenerator = $this->container->get(\EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator::class);
@@ -33,6 +34,8 @@ class DashboardController extends AbstractDashboardController
         return Dashboard::new()
             ->setTitle('<img src="/images/logo.png" alt="Ferme De La Rougeraie" height="100">');
     }
+
+
 
     public function configureMenuItems(): iterable
     {
