@@ -54,7 +54,6 @@ class UserProfileController extends AbstractController
             $groups[] = 'phone_update';
         }
 
-        // Validation via Validator
         $errors = $validator->validate($dto, null, $groups);
         $formatted = [];
         /** @var ConstraintViolation $violation */
@@ -88,4 +87,26 @@ class UserProfileController extends AbstractController
 
         return $this->json(['message' => 'Profil mis à jour']);
     }
+
+    #[Route('/api/me', name: 'api_me_delete', methods: ['DELETE'])]
+    public function delete(
+        EntityManagerInterface $em
+    ): JsonResponse
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        if ($user === null) {
+            return $this->json(['error' => 'Utilisateur non authentifié'], 401);
+        }
+
+        $user->setIsDeleted(true);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Votre compte a bien été désactivé.'
+        ]);
+    }
+
+
 }
