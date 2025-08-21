@@ -334,6 +334,13 @@ class Product
         }
     }
 
+    public function getSoldOutLabel(): string
+    {
+        return ($this->hasStock && $this->stock !== null && $this->stock <= 0)
+            ? '❌ Épuisé'
+            : '✔ Disponible';
+    }
+
 
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void
