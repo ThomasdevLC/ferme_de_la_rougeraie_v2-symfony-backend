@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Controller\Admin;
-use App\Enum\PickupDay;
 use App\Service\Admin\ProductClientTabService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,7 +44,7 @@ class ProductClientTabController extends AbstractController
             'products'          => $products,
             'users'             => $users,
             'quantitiesTab'     => $quantitiesTab,
-            'selectedPickupDay' => $weekday,               // int, pas enum
+            'selectedPickupDay' => $weekday,
         ]);
     }
 

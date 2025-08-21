@@ -29,22 +29,17 @@ class ProductClientTabService
      */
     public function getProductClientQuantitiesByWeekday(int $weekday): array
     {
-        // 1) IDs de produits commandés ce jour
         $productIds = $this->productOrderRepository
             ->getProductIdsByPickupDay($weekday);
 
-        // 2) Entités Product pour l’admin
         $products = $this->productService
             ->getProductAdminDtosByIds($productIds);
 
-        // 3) Quantités brutes [userId, productId, totalQuantity]
         $rawQuantities = $this->productOrderRepository
             ->getUserProductQuantitiesByPickupDay($weekday);
 
-        // 4) Construction de la grille [userId][productId] => quantité
         $quantitiesTab = $this->buildQuantitiesTab($rawQuantities);
 
-        // 5) Chargement des utilisateurs
         $userIds = array_keys($quantitiesTab);
         $users   = $userIds
             ? $this->userRepository->findUsersByIds($userIds)

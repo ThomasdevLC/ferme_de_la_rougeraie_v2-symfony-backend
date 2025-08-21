@@ -47,6 +47,9 @@ class User implements UserInterface
     #[ORM\Column(length: 255)]
     private ?string $phone = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isDeleted = false;
+
     /**
      * @var Collection<int, Product>
      */
@@ -174,6 +177,20 @@ class User implements UserInterface
 
         return $this;
     }
+
+
+    public function isDeleted(): bool
+    {
+        return $this->isDeleted;
+    }
+
+    public function setIsDeleted(bool $isDeleted): static
+    {
+        $this->isDeleted = $isDeleted;
+
+        return $this;
+    }
+
 
     /**
      * @return Collection<int, Product>

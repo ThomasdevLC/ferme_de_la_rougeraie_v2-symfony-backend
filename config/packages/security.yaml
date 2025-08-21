@@ -16,6 +16,7 @@ security:
         login:
             pattern: ^/api/login_check
             stateless: true
+            user_checker: App\Security\User\SoftDeleteableUserChecker
             json_login:
                 check_path: /api/login_check
                 username_path: email
@@ -28,6 +29,7 @@ security:
             stateless: true
             provider: app_user_provider
             jwt: ~
+            user_checker: App\Security\User\SoftDeleteableUserChecker
 
         main:
             lazy: true
@@ -39,6 +41,7 @@ security:
                 csrf_token_id: authenticate
             logout:
                 path: app_logout
+            user_checker: App\Security\User\SoftDeleteableUserChecker
 
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
