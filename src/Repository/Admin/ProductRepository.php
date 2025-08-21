@@ -94,4 +94,20 @@ class ProductRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    /**
+     * @return string[] Get names of products that are sold out.
+     */
+    public function findSoldOutProductNames(): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.name AS name')
+            ->where('p.isDeleted = false')
+            ->andWhere('p.hasStock = true')
+            ->andWhere('p.stock <= 0')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_column($rows, 'name');
+    }
+
 }

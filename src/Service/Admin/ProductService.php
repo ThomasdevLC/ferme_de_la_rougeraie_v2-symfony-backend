@@ -55,4 +55,9 @@ class ProductService
         );
     }
 
+    public function getSoldOutProducts(): array
+    {
+        return $this->productRepository->findSoldOutProductNames();
+    }
+
 }
