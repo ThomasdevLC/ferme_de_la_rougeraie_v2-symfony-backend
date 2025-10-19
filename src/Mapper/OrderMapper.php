@@ -43,6 +43,7 @@ class OrderMapper
                 price: round($prod->getPrice() / 100, 2),
                 unit:         $unitLabel,
                 image:        $imagePath,
+                hasStock:    $prod->hasStock(),
                 stock: $prod->getStock(),
                 limited: (bool) $prod->isLimited(),
                 discount: (bool) $prod->isDiscount(),
