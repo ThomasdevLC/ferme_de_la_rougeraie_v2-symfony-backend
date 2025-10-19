@@ -60,14 +60,6 @@ class ProductCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
 
-        $soldOutNames = $this->productService->getSoldOutProducts();
-
-        if (!empty($soldOutNames)) {
-            $this->addFlash(
-                'warning',
-                sprintf(' Produits épuisés : %s', implode(', ', $soldOutNames))
-            );
-        }
 
 
         return $crud

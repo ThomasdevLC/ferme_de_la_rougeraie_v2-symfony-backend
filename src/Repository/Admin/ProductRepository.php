@@ -95,19 +95,19 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return string[] Get names of products that are sold out.
+     * @return int[] Get IDs of sold out products.
      */
-    public function findSoldOutProductNames(): array
+    public function findSoldOutProductIds(): array
     {
         $rows = $this->createQueryBuilder('p')
-            ->select('p.name AS name')
+            ->select('p.id')
             ->where('p.isDeleted = false')
             ->andWhere('p.hasStock = true')
             ->andWhere('p.stock <= 0')
             ->getQuery()
             ->getScalarResult();
 
-        return array_column($rows, 'name');
+        return array_column($rows, 'id');
     }
 
 }
