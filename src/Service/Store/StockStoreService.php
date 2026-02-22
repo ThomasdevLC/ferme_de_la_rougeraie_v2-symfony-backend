@@ -19,7 +19,7 @@ class StockStoreService
      *
      * @throws \DomainException
      */
-    public function checkAndDecreaseStock(int $productId, int $quantity): Product
+    public function checkAndDecreaseStock(int $productId, float $quantity): Product
     {
         $product = $this->productRepository->find($productId);
 

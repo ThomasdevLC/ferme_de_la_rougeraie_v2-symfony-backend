@@ -40,7 +40,7 @@ class Product
     private ?bool $hasStock = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $stock = null;
+    private ?float  $stock = null;
 
     #[ORM\Column]
     private ?bool $limited = null;
@@ -179,15 +179,14 @@ class Product
         return $this;
     }
 
-    public function getStock(): ?int
+    public function getStock(): ?float
     {
         return $this->stock;
     }
 
-    public function setStock(?int $stock): static
+    public function setStock(?float $stock): static
     {
         $this->stock = $stock;
-
         return $this;
     }
 
@@ -318,14 +317,14 @@ class Product
     }
 
 
-    public function canDecrementStock(int $quantity): bool
+    public function canDecrementStock(float $quantity): bool
     {
         return $this->hasStock()
             && $this->stock !== null
             && $this->stock >= $quantity;
     }
 
-    public function decrementStock(int $quantity): void
+    public function decrementStock(float  $quantity): void
     {
 
         $this->stock -= $quantity;
