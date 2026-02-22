@@ -10,6 +10,7 @@ readonly class ProductDto
         public float   $price,
         public string  $unit,
         public string  $image,
+        public bool    $hasStock,
         public ?int    $stock,
         public bool    $limited,
         public bool    $discount,

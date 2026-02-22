@@ -331,14 +331,22 @@ class Product
         $this->stock -= $quantity;
         if ($this->stock <= 0) {
             $this->isDisplayed = false;
+
         }
+    }
+
+    public function getSoldOutLabel(): string
+    {
+        return ($this->hasStock && $this->stock !== null && $this->stock <= 0)
+            ? '❌ Épuisé'
+            : '✔ Disponible';
     }
 
 
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void
     {
-        if ($this->hasStock && ($this->stock === null || $this->stock < 0)) {
+        if ($this->hasStock && ($this->stock === null || $this->stock <= 0)) {
             $context->buildViolation('Le stock est requis ')
                 ->atPath('stock')
                 ->addViolation();
@@ -351,7 +359,4 @@ class Product
         }
 
     }
-
-
-
 }

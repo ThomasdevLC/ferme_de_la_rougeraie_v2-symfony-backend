@@ -45,12 +45,19 @@
                         <small class="text-muted ms-2">({{ product.unit }})</small>
                     </td >
                     {% for user in users %}
-                        <td class="justify-start  text-center">{{ quantitiesTab[user.id][product.id] ?? 0 }}</td>
+                        {% set qty = quantitiesTab[user.id][product.id] ?? '-' %}
+                        <td class="text-center ">
+                            {{ qty }}
+                        </td>
                     {% endfor %}
+
                 </tr>
             {% endfor %}
             </tbody>
         </table>
 
+    </div>
+    <div class="alert <?= $isError ? 'alert-danger' : 'alert-success' ?>">
+        Message
     </div>
 {% endblock %}

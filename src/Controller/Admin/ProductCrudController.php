@@ -56,14 +56,22 @@ class ProductCrudController extends AbstractCrudController
     }
 
 
+
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
             ->setEntityLabelInSingular('🥕 Produit')
             ->setEntityLabelInPlural('🥕 Produits')
             ->setPageTitle(Crud::PAGE_INDEX, '🥕 Produits')
+            ->setPageTitle(
+                Crud::PAGE_EDIT,
+                fn (Product $product) => '✏️ Modifier: ' . $product->getName()
+            )
             ->setPaginatorPageSize(10)
-            ->setDefaultSort(['updatedAt' => 'DESC']);
+            ->setDefaultSort([
+                'isDisplayed' => 'DESC',
+                'updatedAt'   => 'DESC',
+            ]);
     }
 
     public function configureFields(string $pageName): iterable
@@ -157,8 +165,11 @@ class ProductCrudController extends AbstractCrudController
 
             BooleanField::new('isDisplayed')->setLabel('Affiché'),
 
+            TextField::new('soldOutLabel', 'État')
+                ->onlyOnIndex(),
 
-            AssociationField::new('user')
+
+        AssociationField::new('user')
                 ->hideOnForm()
                 ->hideOnIndex(),
         ];
@@ -171,7 +182,17 @@ class ProductCrudController extends AbstractCrudController
             ->linkToUrl('/admin/product');
 
         return $actions
-            ->update(Crud::PAGE_INDEX, Action::NEW, fn(Action $a) => $a->setLabel('Ajouter un produit'))
+            ->update(
+                Crud::PAGE_INDEX,
+                Action::NEW,
+                fn(Action $a) => $a
+                    ->setLabel('➕ Ajouter un produit'))
+            ->update(
+                Crud::PAGE_INDEX,
+                Action::EDIT,
+                fn (Action $action) => $action
+                    ->setLabel('✏️ Modifier')
+            )
             ->disable(Action::DELETE)
             ->addBatchAction(
                 Action::new('markDeleted', 'Supprimer produit(s)')

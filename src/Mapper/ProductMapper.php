@@ -16,6 +16,7 @@ class ProductMapper
             price: $product->getPriceInEuros(),
             unit: $translator->translate($product->getUnit()),
             image: '/uploads/images/' . $product->getImage(),
+            hasStock:    $product->hasStock(),
             stock: $product->hasStock() ? $product->getStock() : null,
             limited: $product->isLimited(),
             discount: $product->isDiscount(),

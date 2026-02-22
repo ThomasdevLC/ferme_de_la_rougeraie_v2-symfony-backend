@@ -94,4 +94,20 @@ class ProductRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    /**
+     * @return int[] Get IDs of sold out products.
+     */
+    public function findSoldOutProductIds(): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.id')
+            ->where('p.isDeleted = false')
+            ->andWhere('p.hasStock = true')
+            ->andWhere('p.stock <= 0')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_column($rows, 'id');
+    }
+
 }
