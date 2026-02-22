@@ -59,13 +59,14 @@ class ProductCrudController extends AbstractCrudController
 
     public function configureCrud(Crud $crud): Crud
     {
-
-
-
         return $crud
             ->setEntityLabelInSingular('🥕 Produit')
             ->setEntityLabelInPlural('🥕 Produits')
             ->setPageTitle(Crud::PAGE_INDEX, '🥕 Produits')
+            ->setPageTitle(
+                Crud::PAGE_EDIT,
+                fn (Product $product) => '✏️ Modifier: ' . $product->getName()
+            )
             ->setPaginatorPageSize(10)
             ->setDefaultSort([
                 'isDisplayed' => 'DESC',
@@ -181,7 +182,17 @@ class ProductCrudController extends AbstractCrudController
             ->linkToUrl('/admin/product');
 
         return $actions
-            ->update(Crud::PAGE_INDEX, Action::NEW, fn(Action $a) => $a->setLabel('Ajouter un produit'))
+            ->update(
+                Crud::PAGE_INDEX,
+                Action::NEW,
+                fn(Action $a) => $a
+                    ->setLabel('➕ Ajouter un produit'))
+            ->update(
+                Crud::PAGE_INDEX,
+                Action::EDIT,
+                fn (Action $action) => $action
+                    ->setLabel('✏️ Modifier')
+            )
             ->disable(Action::DELETE)
             ->addBatchAction(
                 Action::new('markDeleted', 'Supprimer produit(s)')
