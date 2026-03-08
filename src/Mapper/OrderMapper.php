@@ -50,13 +50,21 @@ class OrderMapper
                 discountText: $prod->getDiscountText(),
                 inter: $prod->getInter()
             );
+            $qty = (float) $po->getQuantity();
+
+            $availableStock = null;
+            if ($productDto->hasStock && $productDto->stock !== null) {
+                $availableStock = $productDto->stock + $qty;
+            }
 
             $items[] = new OrderItemDto(
                 product:   $productDto,
-                quantity:  (float) $po->getQuantity(),
+                quantity:  $qty,
                 unitPrice: round($unitPriceEuros, 2),
-                lineTotal: round($unitPriceEuros * $po->getQuantity(), 2)
+                lineTotal: round($unitPriceEuros * $qty, 2),
+                availableStock: $availableStock
             );
+
         }
 
         return new OrderDetailsDto(

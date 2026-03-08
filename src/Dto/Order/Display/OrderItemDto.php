@@ -13,6 +13,7 @@ readonly class OrderItemDto
         public ProductDto $product,
         public float $quantity,
         public float  $unitPrice,
-        public float $lineTotal
+        public float $lineTotal,
+        public ?float $availableStock,
     ) {}
 }

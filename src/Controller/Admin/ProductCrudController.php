@@ -142,7 +142,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setLabel('Stock')
                 ->setFormTypeOption('row_attr', ['class' => 'has-stock-wrapper flex-stock-row']),
 
-            IntegerField::new('stock')
+            NumberField::new('stock')
                 ->onlyOnForms()
                 ->setFormTypeOption('attr', [
                     'min' => 0,
