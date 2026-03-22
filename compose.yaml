@@ -1,3 +1,4 @@
+
 services:
   php:
     build:
@@ -9,7 +10,6 @@ services:
       - ./:/var/www
     depends_on:
       - database
-    command: sh -c "mkdir -p var/cache var/log var/sessions && chown -R www-data:www-data var && chmod -R 775 var && php-fpm"
 
   nginx:
     image: nginx:alpine
