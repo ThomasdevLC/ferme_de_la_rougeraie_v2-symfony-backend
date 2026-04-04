@@ -45,4 +45,21 @@ class AuthTest extends WebTestCase
         $this->assertArrayHasKey('token', $data);
         $this->assertNotEmpty($data['token']);
     }
+
+    public function testLoginWithWrongPasswordReturns401(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/login_check',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'email'    => 'admin@example.com',
+                'password' => 'mauvais_mot_de_passe',
+            ])
+        );
+
+        $this->assertResponseStatusCodeSame(401);
+    }
 }

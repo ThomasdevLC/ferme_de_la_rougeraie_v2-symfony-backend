@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests;
+namespace App\Tests\Unit\Entity;
 
 use App\Entity\ProductOrder;
 use App\Entity\Product;
@@ -47,8 +47,8 @@ class ProductOrderTest extends TestCase
     {
         $productOrder = new ProductOrder();
         $order = new Order();
-        $productOrder->setOrderId($order);
+        $productOrder->setOrder($order);
 
-        $this->assertSame($order, $productOrder->getOrderId());
+        $this->assertSame($order, $productOrder->getOrder());
     }
 }

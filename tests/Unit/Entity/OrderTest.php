@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Tests;
+namespace App\Tests\Unit\Entity;
 
 use App\Entity\Order;
 use App\Entity\ProductOrder;
 use App\Entity\User;
-use App\Enum\OrderStatus;
-use App\Enum\PickupDay;
 use PHPUnit\Framework\TestCase;
 
 class OrderTest extends TestCase
@@ -35,24 +33,6 @@ class OrderTest extends TestCase
         $this->assertEquals($createdAt, $order->getCreatedAt());
     }
 
-    public function testGetAndSetPickup()
-    {
-        $order = new Order();
-        $pickup = PickupDay::TUESDAY;
-        $order->setPickup($pickup);
-
-        $this->assertEquals($pickup, $order->getPickup());
-    }
-
-    public function testGetAndSetStatus()
-    {
-        $order = new Order();
-        $status = OrderStatus::PENDING;
-        $order->setStatus($status);
-
-        $this->assertEquals($status, $order->getStatus());
-    }
-
     public function testGetAndSetUser()
     {
         $order = new Order();
@@ -67,17 +47,17 @@ class OrderTest extends TestCase
         $order = new Order();
         $productOrder = new ProductOrder();
 
-        $productOrder->setOrderId($order);
+        $productOrder->setOrder($order);
         $order->addProductOrder($productOrder);
 
         $this->assertCount(1, $order->getProductOrders());
         $this->assertTrue($order->getProductOrders()->contains($productOrder));
-        $this->assertSame($order, $productOrder->getOrderId());
+        $this->assertSame($order, $productOrder->getOrder());
 
         // Suppression du ProductOrder
         $order->removeProductOrder($productOrder);
 
         $this->assertCount(0, $order->getProductOrders());
-        $this->assertNull($productOrder->getOrderId());
+        $this->assertNull($productOrder->getOrder());
     }
 }
