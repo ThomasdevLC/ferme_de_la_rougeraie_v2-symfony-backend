@@ -83,7 +83,7 @@ class AppFixtures extends Fixture
             $product->setName($name);
             $product->setUnit($unit);
 
-            // Prix en centimes (toujours aléatoire si vous le souhaitez)
+            // Prix en centimes
             $euros = $faker->numberBetween(0, 9);
             $cents = $faker->randomElement([0, 25, 40, 50, 55, 65, 75, 85]);
             $product->setPrice($euros * 100 + $cents);
