@@ -12,7 +12,7 @@ use DateTimeZone;
 use DomainException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -168,7 +168,7 @@ class OrderStoreController extends AbstractController
 
             return $response;
 
-        } catch (AccessDeniedException $e) {
+        } catch (SecurityAccessDeniedException $e) {
             return $this->json(['error' => $e->getMessage()], 403);
 
         } catch (DomainException $e) {
