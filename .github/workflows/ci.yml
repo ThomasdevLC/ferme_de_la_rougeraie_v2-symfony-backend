@@ -104,6 +104,15 @@ jobs:
       - name: Generate JWT keys
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
+      - name: Debug - check User implements PasswordAuthenticatedUserInterface
+        run: |
+          php -r "
+            require 'vendor/autoload.php';
+            \$u = new App\Entity\User();
+            var_dump(\$u instanceof \Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface);
+            var_dump(class_implements(\$u));
+          "
+
       - name: Clear cache
         run: php bin/console cache:clear --env=test
 
