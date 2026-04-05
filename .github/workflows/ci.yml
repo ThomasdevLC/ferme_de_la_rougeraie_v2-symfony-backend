@@ -104,6 +104,9 @@ jobs:
       - name: Generate JWT keys
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
+      - name: Clear cache
+        run: php bin/console cache:clear --env=test
+
       - name: Create database schema
         run: php bin/console doctrine:schema:create --env=test
 
