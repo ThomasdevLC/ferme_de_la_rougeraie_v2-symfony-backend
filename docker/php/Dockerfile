@@ -1,6 +1,8 @@
-FROM php:8.2-fpm
+# ============================================================
+# Stage 1 — builder : installe les dépendances Composer
+# ============================================================
+FROM php:8.2-fpm AS builder
 
-# Installation dépendances système
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -8,9 +10,9 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
     zip \
-    curl
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Extensions PHP nécessaires à Symfony
 RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
@@ -18,10 +20,43 @@ RUN docker-php-ext-install \
     opcache \
     zip
 
-# Installer Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
+
+# Copie des fichiers Composer en premier pour profiter du cache Docker
+COPY composer.json composer.lock ./
+
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+# Copie du reste du code
+COPY . .
+
+# ============================================================
+# Stage 2 — image finale (propre, sans Composer ni git)
+# ============================================================
+FROM php:8.2-fpm
+
+RUN apt-get update && apt-get install -y \
+    libicu-dev \
+    libonig-dev \
+    libzip-dev \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    intl \
+    opcache \
+    zip
+
+WORKDIR /var/www
+
+# Copie du code + vendor depuis le builder
+COPY --from=builder /var/www /var/www
+
+ENV APP_ENV=prod
 
 COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
