@@ -41,6 +41,9 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-scripts
 
+      - name: Create .env file
+        run: cp .env.test .env
+
       - name: Generate JWT keys
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
 
@@ -94,6 +97,9 @@ jobs:
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-scripts
+
+      - name: Create .env file
+        run: cp .env.test .env
 
       - name: Generate JWT keys
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
