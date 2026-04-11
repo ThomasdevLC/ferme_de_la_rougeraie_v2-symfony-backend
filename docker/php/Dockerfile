@@ -58,6 +58,10 @@ COPY --from=builder /var/www /var/www
 
 ENV APP_ENV=prod
 
+RUN mkdir -p public/uploads/images \
+    && chown -R www-data:www-data public/uploads \
+    && chmod -R 775 public/uploads
+
 COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
