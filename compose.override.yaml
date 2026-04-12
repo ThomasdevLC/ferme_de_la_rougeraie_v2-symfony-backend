@@ -1,4 +1,15 @@
 services:
+  php:
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+    volumes:
+      - ./:/var/www
+
+  nginx:
+    volumes:
+      - ./:/var/www
+
   database:
     image: mysql:8.0
     environment:
