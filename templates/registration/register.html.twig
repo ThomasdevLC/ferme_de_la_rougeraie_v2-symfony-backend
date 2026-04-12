@@ -13,6 +13,7 @@
             <h3 class="text-center mb-3">Créer un compte</h3>
 
             {{ form_start(registrationForm) }}
+            {{ form_errors(registrationForm) }}
 
             <div class="mb-3">
                 {{ form_label(registrationForm.firstName, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
