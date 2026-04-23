@@ -1,15 +1,18 @@
 #!/bin/sh
 set -e
 
-mkdir -p var/cache var/log var/sessions
+# En dev, le volume bind ./:/var/www gère le code et les permissions depuis l'hôte.
+# On ne fait le setup (cache, JWT, chown, nginx) qu'en prod.
+if [ "$APP_ENV" = "prod" ]; then
+    mkdir -p var/cache var/log var/sessions
 
-php bin/console lexik:jwt:generate-keypair --skip-if-exists --env=prod
+    php bin/console lexik:jwt:generate-keypair --skip-if-exists --env=prod
+    php bin/console cache:warmup --env=prod
 
-php bin/console cache:warmup --env=prod
+    chown -R www-data:www-data var config/jwt
+    chmod -R 775 var config/jwt
 
-chown -R www-data:www-data var config/jwt
-chmod -R 775 var config/jwt
-
-nginx -g "daemon off;" &
+    nginx -g "daemon off;" &
+fi
 
 exec php-fpm
