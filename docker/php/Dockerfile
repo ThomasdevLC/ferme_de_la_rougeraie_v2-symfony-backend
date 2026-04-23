@@ -66,6 +66,12 @@ RUN mkdir -p public/uploads/images \
     && chown -R www-data:www-data public/uploads \
     && chmod -R 775 public/uploads
 
+RUN mkdir -p config/jwt \
+    && chown -R www-data:www-data config/jwt \
+    && chmod -R 775 config/jwt
+
+RUN rm -f /etc/nginx/sites-enabled/default
+
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 COPY docker/php/entrypoint.sh /entrypoint.sh
