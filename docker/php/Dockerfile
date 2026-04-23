@@ -32,6 +32,9 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 # Copie du reste du code
 COPY . .
 
+# Fichier .env minimal requis par Symfony au boot (les vraies vars viennent de Dokploy)
+RUN echo "APP_ENV=prod" > .env
+
 # ============================================================
 # Stage 2 — image finale (propre, sans Composer ni git)
 # ============================================================
