@@ -35,9 +35,11 @@ COPY . .
 # Fichier .env minimal requis par Symfony au boot (les vraies vars viennent de Dokploy)
 RUN echo "APP_ENV=prod" > .env
 
-# Installation des assets JS (importmap) et compilation pour EasyAdmin
-RUN APP_ENV=prod php bin/console importmap:install \
-    && APP_ENV=prod php bin/console asset-map:compile
+# Installation des assets JS (importmap) et compilation pour EasyAdmin.
+# Les env vars ci-dessous ne servent qu'au build Symfony — les vraies vars viennent de Dokploy au runtime.
+ENV APP_SECRET=build DATABASE_URL=mysql://build@localhost/build JWT_PASSPHRASE=build MESSENGER_TRANSPORT_DSN=sync:// MAILER_DSN=null://null
+RUN php bin/console importmap:install \
+    && php bin/console asset-map:compile
 
 # ============================================================
 # Stage 2 — image finale (nginx + PHP-FPM dans le même container)
