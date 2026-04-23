@@ -7,4 +7,6 @@ chmod -R 775 var
 
 php bin/console cache:warmup --env=prod
 
+nginx -g "daemon off;" &
+
 exec php-fpm
