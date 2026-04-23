@@ -36,7 +36,7 @@ COPY . .
 RUN echo "APP_ENV=prod" > .env
 
 # ============================================================
-# Stage 2 — image finale (propre, sans Composer ni git)
+# Stage 2 — image finale (nginx + PHP-FPM dans le même container)
 # ============================================================
 FROM php:8.2-fpm
 
@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
     zip \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install \
@@ -65,7 +66,11 @@ RUN mkdir -p public/uploads/images \
     && chown -R www-data:www-data public/uploads \
     && chmod -R 775 public/uploads
 
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
 COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]
