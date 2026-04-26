@@ -10,15 +10,9 @@ use App\Entity\Order;
 use App\Entity\ProductOrder;
 use App\Entity\User;
 use App\Enum\ProductUnit;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+
 class OrderMapper
 {
-    private string $uploadsBase;
-
-    public function __construct(ParameterBagInterface $params)
-    {
-        $this->uploadsBase = rtrim($params->get('uploads_path'), '/') . '/';
-    }
     public  function toDto(Order $order): OrderDetailsDto
     {
 
@@ -27,7 +21,7 @@ class OrderMapper
             $prod = $po->getProduct();
             $unitPriceEuros = $po->getUnitPrice() / 100;
 
-            $imagePath = $this->uploadsBase . ltrim($prod->getImage(), '/');
+            $imagePath = '/uploads/images/' . $prod->getImage();
 
             $unitLabel = match ($prod->getUnit()) {
                 ProductUnit::KG     => 'Kilo',
