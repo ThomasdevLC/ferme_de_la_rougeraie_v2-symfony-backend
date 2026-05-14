@@ -19,7 +19,9 @@ if [ "$APP_ENV" = "prod" ]; then
     chown -R www-data:www-data var config/jwt public/assets
     chmod -R 775 var config/jwt
 
-    nginx -g "daemon off;" &
+    if [ "$ROLE" != "worker" ]; then
+        nginx -g "daemon off;" &
+    fi
 fi
 
-exec php-fpm
+exec "$@"
