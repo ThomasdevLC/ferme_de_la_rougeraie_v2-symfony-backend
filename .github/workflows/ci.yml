@@ -21,7 +21,6 @@ jobs:
       APP_ENV: test
       APP_SECRET: '$ecretf0rt3st'
       JWT_PASSPHRASE: test-jwt-passphrase
-      APP_URL: http://localhost
 
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +42,7 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-scripts
 
       - name: Create .env file
-        run: printf "APP_ENV=test\nAPP_URL=http://localhost\n" > .env
+        run: echo "APP_ENV=test" > .env
 
       - name: Generate JWT keys
         run: php bin/console lexik:jwt:generate-keypair --skip-if-exists
@@ -63,7 +62,6 @@ jobs:
       APP_SECRET: '$ecretf0rt3st'
       JWT_PASSPHRASE: test-jwt-passphrase
       DATABASE_URL: mysql://app:app@127.0.0.1:3306/app?serverVersion=8.0&charset=utf8mb4
-      APP_URL: http://localhost
 
     services:
       database:
