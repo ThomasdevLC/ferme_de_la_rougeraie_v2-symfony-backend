@@ -4,38 +4,38 @@
 
 {% block body %}
     <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="card p-4" style="max-width: 500px; width: 100%;">
+        <div style="max-width: 500px; width: 100%; background: white; border: 1px solid #c4c4c4; border-radius: 2px; padding: 1.5rem;">
 
             <div class="text-center mb-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 100px;">
             </div>
 
-            <h3 class="text-center mb-3">Créer un compte</h3>
+            <h5 class="text-center mb-3">Création compte</h5>
 
             {{ form_start(registrationForm) }}
             {{ form_errors(registrationForm) }}
 
             <div class="mb-3">
                 {{ form_label(registrationForm.firstName, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Votre prénom'}}) }}
+                {{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-control'}}) }}
                 {{ form_errors(registrationForm.firstName) }}
             </div>
 
             <div class="mb-3">
                 {{ form_label(registrationForm.lastName, 'Nom', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom'}}) }}
+                {{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-control'}}) }}
                 {{ form_errors(registrationForm.lastName) }}
             </div>
 
             <div class="mb-3">
                 {{ form_label(registrationForm.email, 'Adresse email', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'Votre adresse email'}}) }}
+                {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
                 {{ form_errors(registrationForm.email) }}
             </div>
 
             <div class="mb-3">
                 {{ form_label(registrationForm.phone, 'Téléphone', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(registrationForm.phone, {'attr': {'class': 'form-control', 'placeholder': 'Votre numéro de téléphone'}}) }}
+                {{ form_widget(registrationForm.phone, {'attr': {'class': 'form-control'}}) }}
                 {{ form_errors(registrationForm.phone) }}
             </div>
 
@@ -44,14 +44,13 @@
                 <div class="input-group">
                     {{ form_widget(registrationForm.plainPassword, {
                         'attr': {
-                            'class': 'form-control password-input',
-                            'placeholder': 'Votre mot de passe'
+                            'class': 'form-control password-input'
                         }
                     }) }}
                     <button type="button" class="btn btn-outline-secondary" onclick="togglePassword(this)">
           <span class="icon-eye">
 
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                  class="lucide lucide-eye">
               <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>
@@ -65,8 +64,79 @@
 
             <div class="form-check mb-3">
                 {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
-                {{ form_label(registrationForm.agreeTerms, 'Accepter les conditions', {'label_attr': {'class': 'form-check-label'}}) }}
+                <label class="form-check-label">
+                    J'accepte les
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalCgu" class="text-decoration-underline" style="color: #fe8401;">conditions générales</a>
+                    et la
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalConfidentialite" class="text-decoration-underline" style="color: #fe8401;">politique de confidentialité</a>
+                </label>
                 {{ form_errors(registrationForm.agreeTerms) }}
+            </div>
+
+            {# Modale CGU #}
+            <div class="modal fade" id="modalCgu" tabindex="-1" aria-labelledby="modalCguLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content" style="border-radius: 2px; font-family: 'Roboto Mono', monospace;">
+                        <div class="modal-header" style="border-bottom: 1px solid #c4c4c4;">
+                            <h6 class="modal-title" id="modalCguLabel">Conditions générales d'utilisation</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                        </div>
+                        <div class="modal-body" style="font-size: 0.85rem;">
+                            <p>La liste des légumes disponibles avec leur prix est mise à jour chaque début de semaine.</p>
+                            <p>Vous avez jusqu'à 21h la veille du jour de vente pour passer une pré-commande.</p>
+                            <p>Le montant est indicatif et peut légèrement être ajusté à la réalité du poids des légumes.</p>
+                            <p>Le règlement se fait à la réception, les jours de vente où il est possible de modifier ou de compléter sa commande.</p>
+                            <hr style="border-color: #c4c4c4;">
+                            <p class="mb-1"><strong>Ferme de la Rougeraie</strong></p>
+                            <p class="mb-1">La Rougeraie, 56120 Forges de Lanouée</p>
+                            <p class="mb-1"><a href="tel:0683341370">06 83 34 13 70</a></p>
+                            <p class="mb-0"><a href="mailto:fermedelarougeraie@gmail.com">fermedelarougeraie@gmail.com</a></p>
+                        </div>
+                        <div class="modal-footer" style="border-top: 1px solid #c4c4c4;">
+                            <button type="button" class="btn btn-sm text-white border-0 rounded-0" style="background-color: #fe8401;" data-bs-dismiss="modal">Fermer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Modale Confidentialité #}
+            <div class="modal fade" id="modalConfidentialite" tabindex="-1" aria-labelledby="modalConfidentialiteLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content" style="border-radius: 2px; font-family: 'Roboto Mono', monospace;">
+                        <div class="modal-header" style="border-bottom: 1px solid #c4c4c4;">
+                            <h6 class="modal-title" id="modalConfidentialiteLabel">Politique de confidentialité</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                        </div>
+                        <div class="modal-body" style="font-size: 0.85rem;">
+                            <p><strong>Dernière mise à jour : {{ "now"|date("d/m/Y") }}</strong></p>
+
+                            <p><strong>1. Responsable du traitement</strong><br>
+                            Ferme de la Rougeraie — La Rougeraie, 56120 Forges de Lanouée<br>
+                            fermedelarougeraie@gmail.com</p>
+
+                            <p><strong>2. Données collectées</strong><br>
+                            Lors de votre inscription, nous collectons : prénom, nom, adresse email, numéro de téléphone. Ces données sont nécessaires à la gestion de vos commandes.</p>
+
+                            <p><strong>3. Finalités</strong><br>
+                            Vos données sont utilisées pour : gérer votre compte et vos commandes, vous informer de l'état de vos commandes, vous contacter en cas de besoin.</p>
+
+                            <p><strong>4. Durée de conservation</strong><br>
+                            Vos données sont conservées pendant la durée de votre relation avec la Ferme de la Rougeraie, puis archivées 3 ans conformément aux obligations légales.</p>
+
+                            <p><strong>5. Vos droits</strong><br>
+                            Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement et de portabilité de vos données. Pour exercer ces droits : <a href="mailto:fermedelarougeraie@gmail.com">fermedelarougeraie@gmail.com</a></p>
+
+                            <p><strong>6. Partage des données</strong><br>
+                            Vos données ne sont jamais vendues ni transmises à des tiers à des fins commerciales.</p>
+
+                            <p><strong>7. Réclamation</strong><br>
+                            Vous pouvez introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr" target="_blank">www.cnil.fr</a>).</p>
+                        </div>
+                        <div class="modal-footer" style="border-top: 1px solid #c4c4c4;">
+                            <button type="button" class="btn btn-sm text-white border-0 rounded-0" style="background-color: #fe8401;" data-bs-dismiss="modal">Fermer</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="d-grid mb-3">
@@ -78,7 +148,7 @@
             {{ form_end(registrationForm) }}
 
             <div class="text-center mt-4">
-                <a href="{{ frontUrl }}/products" class="btn btn-outline-secondary">Retour à la boutique</a>
+                <a href="{{ frontUrl }}/products" class="btn btn-outline-secondary border-0 rounded-0">Retour à la boutique</a>
             </div>
         </div>
     </div>
@@ -91,7 +161,7 @@
 
             // œil fermé SVG
             const eyeClosed = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
            class="lucide lucide-eye-closed">
         <path d="m15 18-.722-3.25"/>
@@ -103,7 +173,7 @@
 
             // œil ouvert SVG
             const eyeOpen = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
            class="lucide lucide-eye">
         <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path>

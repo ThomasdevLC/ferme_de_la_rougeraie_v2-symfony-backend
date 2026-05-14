@@ -4,7 +4,7 @@
 
 {% block body %}
     <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="card  p-4" style="max-width: 400px; width: 100%;">
+        <div style="max-width: 400px; width: 100%; background: white; border: 1px solid #c4c4c4; border-radius: 2px; padding: 1.5rem;">
 
             <div class="text-center mb-2">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 130px;">
@@ -28,7 +28,6 @@
                             id="username"
                             name="_username"
                             class="form-control"
-                            placeholder="Votre email"
                             value="{{ last_username }}"
                             required
                             autofocus
@@ -42,7 +41,6 @@
                             id="password"
                             name="_password"
                             class="form-control"
-                            placeholder="Votre mot de passe"
                             required
                     >
                 </div>
