@@ -4,13 +4,13 @@
 
 {% block body %}
     <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-        <div class="card p-4" style="max-width: 500px; width: 100%;">
+        <div style="max-width: 500px; width: 100%; background: white; border: 1px solid #c4c4c4; border-radius: 2px; padding: 1.5rem;">
 
             <div class="text-center mb-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 100px;">
             </div>
 
-            <h3 class="text-center mb-3">Réinitialiser votre mot de passe</h3>
+            <h5 class="text-center mb-3">Réinitialiser votre mot de passe</h5>
 
             {% for flash_error in app.flashes('reset_password_error') %}
                 <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
@@ -19,7 +19,7 @@
             {{ form_start(requestForm) }}
             <div class="mb-3">
                 {{ form_label(requestForm.email, 'Adresse email', {'label_attr': {'class': 'form-label'}}) }}
-                {{ form_widget(requestForm.email, {'attr': {'class': 'form-control', 'placeholder': 'Votre adresse email'}}) }}
+                {{ form_widget(requestForm.email, {'attr': {'class': 'form-control'}}) }}
                 {{ form_errors(requestForm.email) }}
             </div>
 
@@ -38,7 +38,7 @@
             {{ form_end(requestForm) }}
 
             <div class="text-center mt-4">
-                <a href="{{ frontUrl }}/products" class="btn btn-outline-secondary"> Retour à la boutique</a>
+                <a href="{{ frontUrl }}/products" class="btn btn-outline-secondary border-0 rounded-0">Retour à la boutique</a>
             </div>
         </div>
     </div>
