@@ -4,11 +4,6 @@ framework:
     csrf_protection: true
     # Note that the session will be started ONLY if you read or write from it.
     session: true
-    router:
-        default_uri: '%env(APP_URL)%'
-
-    #esi: true
-    #fragments: true
 
 when@test:
     framework:
