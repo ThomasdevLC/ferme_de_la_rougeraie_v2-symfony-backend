@@ -5,14 +5,6 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
-when@prod:
-    framework:
-        router:
-            default_uri: '%env(APP_URL)%'
-
-    #esi: true
-    #fragments: true
-
 when@test:
     framework:
         test: true
