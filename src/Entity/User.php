@@ -174,7 +174,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPhone(string $phone): static
     {
-        $this->phone = $phone;
+        $this->phone = trim($phone);
 
         return $this;
     }

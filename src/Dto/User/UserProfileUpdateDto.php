@@ -10,6 +10,11 @@ class UserProfileUpdateDto
     public ?string $oldPhone = null;
 
     #[Assert\NotBlank(message: 'Le téléphone est requis.', groups: ['phone_update'])]
+    #[Assert\Regex(
+        pattern: '/^0[1-9](?:\d{8}|(?: \d{2}){4})$/',
+        message: 'Veuillez entrer un numéro de téléphone français valide.',
+        groups: ['phone_update']
+    )]
     public ?string $phone = null;
 
     #[SecurityAssert\UserPassword(
