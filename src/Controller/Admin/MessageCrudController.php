@@ -8,6 +8,7 @@ use App\Service\Admin\MessageService;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\{BooleanField, ChoiceField, TextareaField, TextField,};
@@ -24,6 +25,13 @@ class MessageCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Message::class;
+    }
+
+    public function configureAssets(Assets $assets): Assets
+    {
+        return $assets
+            ->addCssFile('css/admin/message-editor.css')
+            ->addJsFile('js/admin/message-editor.js');
     }
 
 
@@ -58,8 +66,7 @@ class MessageCrudController extends AbstractCrudController
 
         $fields[] = TextareaField::new('content')
             ->setLabel('Contenu')
-            ->setFormTypeOption('attr', ['class' => 'wysiwyg'])
-            ->renderAsHtml();
+            ->setFormTypeOption('attr', ['class' => 'message-editor-input']);
 
         if ($pageName === 'index') {
             $fields[] = TextField::new('isActiveLabel')

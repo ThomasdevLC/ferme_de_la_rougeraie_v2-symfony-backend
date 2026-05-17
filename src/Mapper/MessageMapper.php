@@ -12,7 +12,7 @@ class MessageMapper
         return new MessageDto(
             id: $message->getId(),
             type: $message->getType()?->value,
-            content: $message->getContent(),
+            content: Message::normalizeContent($message->getContent() ?? ''),
             isActive: $message->isActive(),
         );
     }
