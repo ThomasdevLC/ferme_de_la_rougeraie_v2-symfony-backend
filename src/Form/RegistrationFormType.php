@@ -43,8 +43,15 @@ class RegistrationFormType extends AbstractType
 
             ->add('phone', TelType::class, [
                 'label' => 'Téléphone',
+                'attr' => [
+                    'inputmode' => 'tel',
+                ],
                 'constraints' => [
                     new NotBlank(['message' => 'Veuillez entrer un numéro de téléphone']),
+                    new Regex([
+                        'pattern' => '/^0[1-9](?:\d{8}|(?: \d{2}){4})$/',
+                        'message' => 'Veuillez entrer un numéro de téléphone français valide.',
+                    ]),
                 ],
             ])
             ->add('plainPassword', PasswordType::class, [
@@ -67,7 +74,7 @@ class RegistrationFormType extends AbstractType
                 ],
             ])
             ->add('agreeTerms', CheckboxType::class, [
-                'label' => "J'accepte les conditions d'utilisation",
+                'label' => false,
                 'mapped' => false,
                 'constraints' => [
                     new IsTrue([

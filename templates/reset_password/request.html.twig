@@ -3,8 +3,99 @@
 {% block title %}Réinitialiser votre mot de passe{% endblock %}
 
 {% block body %}
-    <div class="container min-vh-100 d-flex align-items-center justify-content-center">
-        <div style="max-width: 500px; width: 100%; background: white; border: 1px solid #c4c4c4; border-radius: 2px; padding: 1.5rem;">
+    <style>
+        .reset-page {
+            --base: #e6d2be;
+            --bg-blend: multiply;
+            --blur: 0px;
+            --fg-blend: soft-light;
+            --foreground: #ff8000;
+            --opacity: 0.54;
+            --spacing: 0px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .reset-background {
+            background-color: var(--base);
+            bottom: 0;
+            display: flex;
+            left: 0;
+            overflow: hidden;
+            padding: var(--spacing);
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+
+        .reset-background img {
+            bottom: 0;
+            height: 100%;
+            left: 0;
+            object-fit: cover;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 100%;
+        }
+
+        .reset-bg-photo {
+            filter: grayscale(100%) contrast(1) blur(var(--blur));
+            mix-blend-mode: var(--bg-blend);
+            opacity: var(--opacity);
+            z-index: 0;
+        }
+
+        .reset-bg-texture {
+            mix-blend-mode: multiply;
+            opacity: 0.28;
+            z-index: 1;
+        }
+
+        .reset-background::before {
+            background-color: var(--foreground);
+            bottom: 0;
+            content: '';
+            left: 0;
+            mix-blend-mode: var(--fg-blend);
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: 2;
+        }
+
+        .reset-page .container {
+            position: relative;
+            z-index: 0;
+        }
+
+        .reset-card {
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .return-shop-link {
+            color: #6c757d;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .return-shop-link:hover {
+            color: #6c757d;
+            text-decoration: underline;
+        }
+    </style>
+
+    <div class="reset-page">
+        <div class="reset-background" aria-hidden="true">
+            <img class="reset-bg-photo" src="{{ asset('images/auth-background.jpg') }}" alt="">
+            <img class="reset-bg-texture" src="{{ asset('images/background.png') }}" alt="">
+        </div>
+
+        <div class="container min-vh-100 d-flex align-items-center justify-content-center">
+            <div class="reset-card" style="max-width: 500px; width: 100%; border: 1px solid #c4c4c4; border-radius: 2px; padding: 1.5rem;">
 
             <div class="text-center mb-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 100px;">
@@ -38,7 +129,8 @@
             {{ form_end(requestForm) }}
 
             <div class="text-center mt-4">
-                <a href="{{ frontUrl }}/products" class="btn btn-outline-secondary border-0 rounded-0">Retour à la boutique</a>
+                <a href="{{ frontUrl }}/products" class="return-shop-link">Retour à la boutique →</a>
+            </div>
             </div>
         </div>
     </div>

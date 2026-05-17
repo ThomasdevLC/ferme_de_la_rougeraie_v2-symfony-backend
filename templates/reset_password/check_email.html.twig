@@ -3,6 +3,19 @@
 {% block title %}Email de réinitialisation envoyé{% endblock %}
 
 {% block body %}
+    <style>
+        .return-shop-link {
+            color: #6c757d;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .return-shop-link:hover {
+            color: #6c757d;
+            text-decoration: underline;
+        }
+    </style>
+
     <div class="container min-vh-100 d-flex align-items-center justify-content-center">
         <div style="max-width: 500px; width: 100%; background: white; border: 1px solid #c4c4c4; border-radius: 2px; padding: 1.5rem;">
 
@@ -23,6 +36,10 @@
             <p>
                 Si vous ne recevez pas d'email, veuillez vérifier votre dossier de courrier indésirable ou <a href="{{ path('app_forgot_password_request') }}">réessayez</a>.
             </p>
+
+            <div class="text-center mt-4">
+                <a href="{{ frontUrl }}/products" class="return-shop-link">Retour à la boutique →</a>
+            </div>
 
         </div>
     </div>
