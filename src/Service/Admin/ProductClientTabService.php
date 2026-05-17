@@ -24,7 +24,7 @@ class ProductClientTabService
      * @return array{
      *     0: Product[],                   // Products ordered on that day
      *     1: User[],                      // Users who placed orders
-     *     2: array<int, array<int, int>>  // Quantities grid [userId][productId] => qty
+     *     2: array<int, array<int, float>>  // Quantities grid [userId][productId] => qty
      * }
      */
     public function getProductClientQuantitiesByWeekday(int $weekday): array
@@ -52,7 +52,7 @@ class ProductClientTabService
      * Converts raw query results into a structured array [userId][productId] => quantity.
      *
      * @param array<array{userId: int, productId: int, totalQuantity: string}> $rawData
-     * @return array<int, array<int, int>>
+     * @return array<int, array<int, float>>
      */
     private function buildQuantitiesTab(array $rawData): array
     {
@@ -60,7 +60,7 @@ class ProductClientTabService
         foreach ($rawData as $row) {
             $userId    = (int) $row['userId'];
             $productId = (int) $row['productId'];
-            $qty       = (int) $row['totalQuantity'];
+            $qty       = (float) $row['totalQuantity'];
             $tab[$userId][$productId] = $qty;
         }
         return $tab;
