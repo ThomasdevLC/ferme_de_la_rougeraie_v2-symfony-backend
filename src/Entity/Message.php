@@ -52,9 +52,23 @@ class Message
 
     public function setContent(string $content): static
     {
-        $this->content = $content;
+        $this->content = self::normalizeContent($content);
 
         return $this;
+    }
+
+    public static function normalizeContent(string $content): string
+    {
+        $content = str_replace('&nbsp;', ' ', $content);
+        $content = preg_replace('/<br\s*\/?>/i', "\n", $content) ?? $content;
+        $content = preg_replace('/<\/p>\s*<p>/i', "\n", $content) ?? $content;
+        $content = preg_replace('/<\/div>\s*<div>/i', "\n", $content) ?? $content;
+        $content = preg_replace('/<\/?(div|p)>/i', '', $content) ?? $content;
+        $content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $content = preg_replace("/[ \t]+\n/", "\n", $content) ?? $content;
+        $content = preg_replace("/\n{3,}/", "\n\n", $content) ?? $content;
+
+        return trim($content);
     }
 
     public function isActive(): ?bool
