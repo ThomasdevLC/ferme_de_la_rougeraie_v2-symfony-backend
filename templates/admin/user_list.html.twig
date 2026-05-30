@@ -2,16 +2,42 @@
 
 {% block content %}
     <div class="pt-5">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
             <h1 class="title fw-bold fs-3">📱 Utilisateurs</h1>
-            {# on passe la référence du bouton à la fonction #}
-            <button class="btn btn-primary" onclick="copyEmails(this)">📋 Copier tous les emails</button>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span id="selected-users-count" class="text-muted"></span>
+                <button id="copy-emails-button" type="button" class="btn btn-primary" onclick="copySelectedEmails(this)">
+                    📋 Copier les emails pour Cci
+                </button>
+                <a
+                        class="btn btn-outline-secondary"
+                        href="https://mail.google.com/mail/?view=cm&fs=1"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                >
+                    Ouvrir Gmail
+                </a>
+            </div>
         </div>
+
+        <p id="copy-emails-help" class="text-muted mb-3">
+            Copiez les emails puis collez-les dans le champ Cci de Gmail pour masquer les adresses des destinataires.
+        </p>
 
         <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead class="thead-dark">
                 <tr>
+                    <th>
+                        <input
+                                id="select-all-users"
+                                class="form-check-input"
+                                type="checkbox"
+                                checked
+                                aria-label="Sélectionner tous les utilisateurs"
+                        >
+                    </th>
                     <th>Nom</th>
                     <th>Email</th>
                     <th>Téléphone</th>
@@ -20,12 +46,21 @@
                 <tbody>
                 {% for user in users %}
                     <tr>
+                        <td>
+                            <input
+                                    class="form-check-input user-email-checkbox"
+                                    type="checkbox"
+                                    value="{{ user.email }}"
+                                    checked
+                                    aria-label="Sélectionner {{ user.firstName }} {{ user.lastName }}"
+                            >
+                        </td>
                         <td>{{ user.firstName }} {{ user.lastName }}</td>
-                        <td class="user-email">{{ user.email }}</td>
+                        <td>{{ user.email }}</td>
                         <td>{{ user.phone }}</td>
                     </tr>
                 {% else %}
-                    <tr><td colspan="3">Aucun utilisateur trouvé.</td></tr>
+                    <tr><td colspan="4">Aucun utilisateur trouvé.</td></tr>
                 {% endfor %}
                 </tbody>
             </table>
@@ -33,25 +68,61 @@
     </div>
 
     <script>
-        function copyEmails(btn) {
-            const original = btn.innerHTML;
+        const selectAllUsers = document.getElementById('select-all-users');
+        const userEmailCheckboxes = Array.from(document.querySelectorAll('.user-email-checkbox'));
+        const selectedUsersCount = document.getElementById('selected-users-count');
+        const copyEmailsButton = document.getElementById('copy-emails-button');
+        const copyEmailsHelp = document.getElementById('copy-emails-help');
 
-            const emails = Array.from(document.querySelectorAll('.user-email'))
-                .map(el => el.textContent.trim())
-                .join(', ');
+        function getSelectedEmails() {
+            return userEmailCheckboxes
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+        }
+
+        function updateSelectionState() {
+            const selectedCount = getSelectedEmails().length;
+            const totalCount = userEmailCheckboxes.length;
+
+            selectedUsersCount.textContent = `${selectedCount} destinataire(s) sélectionné(s)`;
+            copyEmailsButton.disabled = selectedCount === 0;
+
+            selectAllUsers.checked = totalCount > 0 && selectedCount === totalCount;
+            selectAllUsers.indeterminate = selectedCount > 0 && selectedCount < totalCount;
+        }
+
+        selectAllUsers.addEventListener('change', () => {
+            userEmailCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllUsers.checked;
+            });
+            updateSelectionState();
+        });
+
+        userEmailCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectionState);
+        });
+
+        function copySelectedEmails(btn) {
+            const original = btn.innerHTML;
+            const emails = getSelectedEmails().join(', ');
 
             navigator.clipboard.writeText(emails)
                 .then(() => {
                     btn.textContent = 'Emails copiés !';
                     btn.disabled = true;
+                    copyEmailsHelp.textContent = 'Emails copiés. Ouvrez Gmail et collez-les dans le champ Cci.';
                     setTimeout(() => {
                         btn.innerHTML = original;
-                        btn.disabled = false;
+                        copyEmailsHelp.textContent = 'Copiez les emails puis collez-les dans le champ Cci de Gmail pour masquer les adresses des destinataires.';
+                        updateSelectionState();
                     }, 2500);
                 })
                 .catch(err => {
                     console.error('Erreur lors de la copie :', err);
+                    copyEmailsHelp.textContent = 'La copie a échoué. Vérifiez les autorisations du presse-papiers dans votre navigateur.';
                 });
         }
+
+        updateSelectionState();
     </script>
 {% endblock %}
