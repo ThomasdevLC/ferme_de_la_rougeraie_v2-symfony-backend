@@ -88,6 +88,10 @@ class OrderStoreService
             throw new AccessDeniedException('Cette commande n\'existe pas ou vous n\'êtes pas autorisé à la modifier.');
         }
 
+        if (!$order->isEditable()) {
+            throw new DomainException('Cette commande ne peut plus être modifiée.');
+        }
+
         foreach ($order->getProductOrders() as $oldLine) {
             $this->stockService
                 ->increaseStock($oldLine->getProduct()->getId(), $oldLine->getQuantity());

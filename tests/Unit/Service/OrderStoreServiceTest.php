@@ -74,4 +74,31 @@ class OrderStoreServiceTest extends TestCase
         $service = $this->buildService($repo, $stock, $mapper);
         $service->createOrderFromCart($this->buildDto($pickupDate), new User());
     }
+
+    public function testEditExpiredOrderFails(): void
+    {
+        $tz    = new DateTimeZone('Europe/Paris');
+        $order = (new Order())->setPickupDate(new DateTimeImmutable('-1 day', $tz));
+        $user  = new User();
+
+        $repo = $this->createMock(OrderStoreRepository::class);
+        $repo->method('findOneByIdAndUser')->willReturn($order);
+
+        $stock = $this->createMock(StockStoreService::class);
+        $stock->expects($this->never())->method('increaseStock');
+        $stock->expects($this->never())->method('checkAndDecreaseStock');
+
+        $mapper = $this->createMock(OrderMapper::class);
+
+        $service = $this->buildService($repo, $stock, $mapper);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Cette commande ne peut plus être modifiée.');
+
+        $service->editOrder(
+            orderId: 1,
+            dto: $this->buildDto(new DateTimeImmutable('+3 days', $tz)),
+            user: $user
+        );
+    }
 }
