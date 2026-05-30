@@ -73,4 +73,29 @@ class StockStoreServiceTest extends TestCase
 
         $service->checkAndDecreaseStock(1, 5);
     }
+
+    /**
+     * @dataProvider provideInvalidQuantities
+     */
+    public function testInvalidQuantity(float $quantity): void
+    {
+        $repo = $this->createMock(ProductRepository::class);
+        $repo->expects($this->never())->method('find');
+
+        $em      = $this->createMock(EntityManagerInterface::class);
+        $service = new StockStoreService($repo, $em);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('La quantité doit être supérieure à zéro.');
+
+        $service->checkAndDecreaseStock(1, $quantity);
+    }
+
+    public function provideInvalidQuantities(): array
+    {
+        return [
+            'zero' => [0],
+            'negative' => [-1],
+        ];
+    }
 }

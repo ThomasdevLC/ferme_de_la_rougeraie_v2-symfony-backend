@@ -21,6 +21,10 @@ class StockStoreService
      */
     public function checkAndDecreaseStock(int $productId, float $quantity): Product
     {
+        if ($quantity <= 0) {
+            throw new DomainException('La quantité doit être supérieure à zéro.');
+        }
+
         $product = $this->productRepository->find($productId);
 
         if (!$product || !$product->isDisplayed() || $product->isDeleted()) {

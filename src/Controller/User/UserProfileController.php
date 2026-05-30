@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserProfileController extends AbstractController
 {
@@ -32,8 +31,7 @@ class UserProfileController extends AbstractController
         Request                     $request,
         UserProfileUpdateMapper     $mapper,
         EntityManagerInterface      $em,
-        ValidatorInterface          $validator,
-        UserPasswordHasherInterface $passwordHasher
+        ValidatorInterface          $validator
     ): JsonResponse
     {
         /** @var User $user */
@@ -70,16 +68,6 @@ class UserProfileController extends AbstractController
 
         if (count($formatted) > 0) {
             return $this->json(['errors' => $formatted], 422);
-        }
-
-        if (null !== $dto->plainPassword) {
-            $user->setPassword(
-                $passwordHasher->hashPassword($user, $dto->plainPassword)
-            );
-        }
-
-        if (null !== $dto->phone && $dto->phone !== $user->getPhone()) {
-            $user->setPhone($dto->phone);
         }
 
         $mapper->updateUserFromDto($user, $dto);
