@@ -46,11 +46,11 @@ class ProductRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->select('p.id')
             ->leftJoin('p.productOrders', 'po')
-            ->leftJoin('po.order', 'o')
+            ->leftJoin('po.order', 'o', 'WITH', 'o.isDeleted = false')
             ->where('p.id IN (:ids)')
-            ->andWhere('o.isDeleted = true OR o.id IS NULL')
             ->setParameter('ids', $ids)
-            ->groupBy('p.id');
+            ->groupBy('p.id')
+            ->having('COUNT(o.id) = 0');
 
         return array_column($qb->getQuery()->getScalarResult(), 'id');
     }
