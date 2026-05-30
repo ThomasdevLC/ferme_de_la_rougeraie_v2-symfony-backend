@@ -86,7 +86,7 @@ class StockStoreServiceTest extends TestCase
         $service = new StockStoreService($repo, $em);
 
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('La quantité doit être strictement supérieure à zéro.');
+        $this->expectExceptionMessage('La quantité doit être supérieure à zéro.');
 
         $service->checkAndDecreaseStock(1, $quantity);
     }
