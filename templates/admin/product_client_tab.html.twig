@@ -1,60 +1,179 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
 {% block content %}
-    <div class="table-responsive pt-5">
+    {% set pickupDays = {
+        2: 'Mardi',
+        5: 'Vendredi'
+    } %}
 
-        {% set pickupDays = {
-            2: 'Mardi',
-            5: 'Vendredi'
-        } %}
+    <style>
+        .orders-print-report {
+            display: none;
+        }
 
+        .orders-screen-table th:first-child,
+        .orders-screen-table td:first-child {
+            min-width: 150px;
+        }
+
+        .orders-screen-table th:not(:first-child),
+        .orders-screen-table td:not(:first-child) {
+            min-width: 120px;
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            body * {
+                visibility: hidden;
+            }
+
+            .orders-print-report,
+            .orders-print-report * {
+                visibility: visible;
+            }
+
+            .orders-print-report {
+                display: block;
+                left: 0;
+                position: absolute;
+                top: 0;
+                width: 100%;
+            }
+
+            .orders-print-page {
+                break-after: page;
+                page-break-after: always;
+            }
+
+            .orders-print-page:last-child {
+                break-after: auto;
+                page-break-after: auto;
+            }
+
+            .orders-print-table {
+                border-collapse: collapse;
+                table-layout: fixed;
+                width: 100%;
+            }
+
+            .orders-print-table thead {
+                display: table-header-group;
+            }
+
+            .orders-print-table tr {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .orders-print-table th,
+            .orders-print-table td {
+                border: 1px solid #000;
+                font-size: 10px;
+                padding: 4px;
+                text-align: center;
+            }
+
+            .orders-print-table th:first-child,
+            .orders-print-table td:first-child {
+                text-align: left;
+                width: 22%;
+            }
+        }
+    </style>
+
+    <div class="orders-screen-table table-responsive pt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="title fw-bold fs-3 m-0">📋 Tableau</h1>
 
-            <ul class="nav nav-pills">
-                {% for dayNum, label in pickupDays %}
-                    <li class="nav-item">
-                        <a
-                                href="{{ ea_url().set('pickup', dayNum) }}"
-                                class="nav-link {{ selectedPickupDay == dayNum ? 'active' : '' }}"
-                        >
-                            {{ label }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+            <div class="d-flex align-items-center gap-3">
+                <button type="button" class="btn btn-secondary" onclick="window.print()">
+                    Imprimer / PDF
+                </button>
+
+                <ul class="nav nav-pills">
+                    {% for dayNum, label in pickupDays %}
+                        <li class="nav-item">
+                            <a
+                                    href="{{ ea_url().set('pickup', dayNum) }}"
+                                    class="nav-link {{ selectedPickupDay == dayNum ? 'active' : '' }}"
+                            >
+                                {{ label }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
 
         <table class="table table-striped table-hover">
             <thead>
-            <tr>
-                <th>Produit</th>
-                {% for user in users %}
-                    <th class="text-center">
-                        {{ user.firstName }}<br>{{ user.lastName }}
-                    </th>
-                {% endfor %}
-            </tr>
+                <tr>
+                    <th>Produit</th>
+                    {% for user in users %}
+                        <th class="text-center">
+                            {{ user.firstName }}<br>{{ user.lastName }}
+                        </th>
+                    {% endfor %}
+                </tr>
             </thead>
 
             <tbody>
-            {% for product in products %}
-                <tr>
-                    <td>
-                        {{ product.name }}
-                        <small class="text-muted ms-2">({{ product.unit }})</small>
-                    </td >
-                    {% for user in users %}
-                        {% set qty = quantitiesTab[user.id][product.id] ?? '-' %}
-                        <td class="text-center ">
-                            {{ qty }}
+                {% for product in products %}
+                    <tr>
+                        <td>
+                            {{ product.name }}
+                            <small class="text-muted ms-2">({{ product.unit }})</small>
                         </td>
-                    {% endfor %}
-
-                </tr>
-            {% endfor %}
+                        {% for user in users %}
+                            {% set qty = quantitiesTab[user.id][product.id] ?? '-' %}
+                            <td class="text-center">
+                                {{ qty }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
+    </div>
 
+    <div class="orders-print-report">
+        {% for userGroup in users|batch(8) %}
+            <section class="orders-print-page">
+                <h1>Tableau commandes - {{ pickupDays[selectedPickupDay] }}</h1>
+                <p>Imprimé le {{ 'now'|date('d/m/Y à H:i') }}</p>
+
+                <table class="orders-print-table">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            {% for user in userGroup %}
+                                <th>{{ user.firstName }}<br>{{ user.lastName }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td>{{ product.name }} ({{ product.unit }})</td>
+                                {% for user in userGroup %}
+                                    <td>{{ quantitiesTab[user.id][product.id] ?? '-' }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+        {% else %}
+            <section class="orders-print-page">
+                <h1>Tableau commandes - {{ pickupDays[selectedPickupDay] }}</h1>
+                <p>Imprimé le {{ 'now'|date('d/m/Y à H:i') }}</p>
+                <p>Aucune commande à préparer.</p>
+            </section>
+        {% endfor %}
     </div>
 {% endblock %}
