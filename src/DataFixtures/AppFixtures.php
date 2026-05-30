@@ -148,6 +148,49 @@ class AppFixtures extends Fixture
             }
         }
 
+        // --- Commandes supplémentaires pour tester le tableau admin et son impression ---
+        foreach (['tuesday' => 5, 'friday' => 20] as $day => $orderCount) {
+            for ($i = 1; $i <= $orderCount; $i++) {
+                $user = new User();
+                $user->setFirstName($faker->firstName());
+                $user->setLastName($faker->lastName());
+                $user->setEmail(sprintf('demo-%s-%02d@example.com', $day, $i));
+                $user->setPhone($faker->phoneNumber());
+                $user->setRoles(['ROLE_USER']);
+                $user->setPassword($this->passwordHasher->hashPassword($user, 'Userpassword1@'));
+                $manager->persist($user);
+
+                $order = new Order();
+                $order->setUser($user);
+                $order->setTotal(0);
+                $order->setCreatedAt(new DateTimeImmutable());
+                $order->setPickupDate(
+                    (new DateTimeImmutable('now', new DateTimeZone('Europe/Paris')))
+                        ->modify("next {$day}")
+                        ->setTime(0, 0, 0)
+                );
+                $manager->persist($order);
+
+                $orderTotal = 0;
+                for ($j = 0; $j < rand(3, 6); $j++) {
+                    $product = $faker->randomElement($products);
+                    $quantity = rand(1, 5);
+                    $unitPrice = $product->getPrice();
+
+                    $productOrder = new ProductOrder();
+                    $productOrder->setOrder($order);
+                    $productOrder->setProduct($product);
+                    $productOrder->setQuantity($quantity);
+                    $productOrder->setUnitPrice($unitPrice);
+                    $manager->persist($productOrder);
+
+                    $orderTotal += $quantity * $unitPrice;
+                }
+
+                $order->setTotal($orderTotal);
+            }
+        }
+
         // --- Création de messages ---
         $messageTypes = [
             MessageType::MARQUEE,
