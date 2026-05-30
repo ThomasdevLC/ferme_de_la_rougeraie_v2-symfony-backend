@@ -4,12 +4,10 @@ namespace App\Controller\Admin;
 
 use App\Entity\Order;
 use App\Enum\PickupDay;
-use App\Service\Admin\OrderService;
 use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud, Filters};
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\{BooleanField,
     ChoiceField,
@@ -22,21 +20,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 
 class OrderCrudController extends AbstractCrudController
 
 {
-
-    private OrderService $orderService;
-
-    public function __construct( OrderService $orderService)    {
-        $this->orderService = $orderService;
-
-    }
-
         public static function getEntityFqcn(): string
     {
         return Order::class;
@@ -86,12 +73,7 @@ class OrderCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions
-            ->disable(Action::DELETE, Action::NEW)
-            ->addBatchAction(
-                Action::new('markDeleted', 'Supprimer commande(s)')
-                    ->linkToCrudAction('markAsDeleted')
-                    ->addCssClass('btn-danger')
-            )
+            ->disable(Action::DELETE, Action::BATCH_DELETE, Action::NEW)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ->remove(Crud::PAGE_DETAIL, Action::EDIT)
@@ -116,42 +98,6 @@ class OrderCrudController extends AbstractCrudController
                     ])
             );
     }
-
-    private function redirectBackToIndex(AdminContext $context, AdminUrlGenerator $adminUrlGenerator): RedirectResponse
-    {
-        return $this->redirect($context->getReferrer() ?? $adminUrlGenerator
-            ->setController(self::class)
-            ->setAction('index')
-            ->generateUrl());
-    }
-
-
-    public function markAsDeleted(
-        Request $request,
-        AdminContext $context,
-        AdminUrlGenerator $adminUrlGenerator
-    ): RedirectResponse {
-        $entityIds = $request->request->all('batchActionEntityIds', []);
-
-        if (empty($entityIds)) {
-            $this->addFlash('warning', 'Aucune commande sélectionnée.');
-            return $this->redirectBackToIndex($context, $adminUrlGenerator);
-        }
-
-        $nonDeletable = $this->orderService->markOrdersAsDeletedByIds($entityIds);
-
-        if (!empty($nonDeletable)) {
-            $this->addFlash('warning', sprintf(
-                'Ces commandes n\'ont pas été supprimées car elles sont encore en attente : %s',
-                implode(', ', $nonDeletable)
-            ));
-        } else {
-            $this->addFlash('success', 'Commande(s) supprimée(s) !');
-        }
-
-        return $this->redirectBackToIndex($context, $adminUrlGenerator);
-    }
-
 
     public function createIndexQueryBuilder(
         SearchDto $searchDto,
