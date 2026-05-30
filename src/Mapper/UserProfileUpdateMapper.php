@@ -14,9 +14,11 @@ class UserProfileUpdateMapper
 
     public function updateUserFromDto(User $user, UserProfileUpdateDto $dto): void
     {
-        $user->setPhone($dto->phone);
+        if (null !== $dto->phone) {
+            $user->setPhone($dto->phone);
+        }
 
-        if (!empty($dto->plainPassword)) {
+        if (null !== $dto->plainPassword) {
             $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->plainPassword);
             $user->setPassword($hashedPassword);
         }
