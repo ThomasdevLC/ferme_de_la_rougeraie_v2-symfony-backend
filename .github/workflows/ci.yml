@@ -151,4 +151,6 @@ jobs:
           context: .
           file: docker/php/Dockerfile
           push: true
-          tags: ${{ steps.image.outputs.name }}:latest
+          tags: |
+            ${{ steps.image.outputs.name }}:latest
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
