@@ -44,6 +44,7 @@ security:
             user_checker: App\Security\User\SoftDeleteableUserChecker
 
     access_control:
+        - { path: ^/health$, roles: PUBLIC_ACCESS }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/products, roles: PUBLIC_ACCESS }
         - {path: ^/api/messages, roles: PUBLIC_ACCESS}
