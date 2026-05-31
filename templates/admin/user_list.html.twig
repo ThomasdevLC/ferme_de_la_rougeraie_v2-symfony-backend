@@ -8,7 +8,7 @@
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <span id="selected-users-count" class="text-muted"></span>
                 <button id="copy-emails-button" type="button" class="btn btn-primary" onclick="copySelectedEmails(this)">
-                    📋 Copier les emails pour Cci
+                    📋 Copier les emails
                 </button>
                 <a
                         class="btn btn-outline-secondary"
@@ -21,9 +21,7 @@
             </div>
         </div>
 
-        <p id="copy-emails-help" class="text-muted mb-3">
-            Copiez les emails puis collez-les dans le champ Cci de Gmail pour masquer les adresses des destinataires.
-        </p>
+        <p id="copy-emails-help" class="text-muted mb-3"></p>
 
         <div class="table-responsive">
             <table class="table table-striped table-hover">
@@ -110,10 +108,10 @@
                 .then(() => {
                     btn.textContent = 'Emails copiés !';
                     btn.disabled = true;
-                    copyEmailsHelp.textContent = 'Emails copiés. Ouvrez Gmail et collez-les dans le champ Cci.';
+                    copyEmailsHelp.textContent = 'Emails copiés. Ouvrez Gmail et collez-les dans le champ À.';
                     setTimeout(() => {
                         btn.innerHTML = original;
-                        copyEmailsHelp.textContent = 'Copiez les emails puis collez-les dans le champ Cci de Gmail pour masquer les adresses des destinataires.';
+                        copyEmailsHelp.textContent = 'Copiez les emails puis collez-les dans le champ À de Gmail.';
                         updateSelectionState();
                     }, 2500);
                 })

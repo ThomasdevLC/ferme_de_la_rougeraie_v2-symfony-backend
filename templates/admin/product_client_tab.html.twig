@@ -11,6 +11,15 @@
             display: none;
         }
 
+        .orders-screen-table {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .orders-screen-table .orders-screen-header {
+            width: 100%;
+        }
+
         .orders-screen-table th:first-child,
         .orders-screen-table td:first-child {
             min-width: 150px;
@@ -85,12 +94,12 @@
         }
     </style>
 
-    <div class="orders-screen-table table-responsive pt-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="orders-screen-table pt-5">
+        <div class="orders-screen-header d-flex justify-content-between align-items-center mb-4">
             <h1 class="title fw-bold fs-3 m-0">📋 Tableau</h1>
 
             <div class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-secondary" onclick="window.print()">
+                <button type="button" class="btn btn-secondary d-none d-md-inline-block" onclick="window.print()">
                     Imprimer / PDF
                 </button>
 
@@ -109,6 +118,7 @@
             </div>
         </div>
 
+        <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
@@ -138,6 +148,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="orders-print-report">
