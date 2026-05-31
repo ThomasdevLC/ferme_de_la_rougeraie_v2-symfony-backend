@@ -17,6 +17,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class SoldOutProductCrudController extends AbstractCrudController
 {
@@ -89,6 +92,10 @@ class SoldOutProductCrudController extends AbstractCrudController
                 ])
                 ->setFormTypeOption('row_attr', ['class' => 'stock-wrapper']),
 
+            BooleanField::new('isDisplayed')
+                ->onlyOnForms()
+                ->setLabel('Afficher dans la boutique'),
+
             BooleanField::new('limited')->setLabel('Qté Limitée')
                 ->hideOnIndex()
 
@@ -118,7 +125,18 @@ class SoldOutProductCrudController extends AbstractCrudController
             ->setParameter('ids', $soldOutIds);
     }
 
+    protected function getRedirectResponseAfterSave(AdminContext $context, string $action): RedirectResponse
+    {
+        if ([] === $this->productRepository->findSoldOutProductIds()) {
+            $url = $this->container->get(AdminUrlGenerator::class)
+                ->setController(ProductCrudController::class)
+                ->setAction(Action::INDEX)
+                ->generateUrl();
 
+            return $this->redirect($url);
+        }
 
+        return parent::getRedirectResponseAfterSave($context, $action);
+    }
 
 }
