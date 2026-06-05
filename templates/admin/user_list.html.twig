@@ -7,7 +7,7 @@
 
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <span id="selected-users-count" class="text-muted"></span>
-                <button id="copy-emails-button" type="button" class="btn btn-primary" onclick="copySelectedEmails(this)">
+                <button id="copy-emails-button" type="button" class="btn btn-primary">
                     📋 Copier les emails
                 </button>
                 <a
@@ -100,27 +100,54 @@
             checkbox.addEventListener('change', updateSelectionState);
         });
 
-        function copySelectedEmails(btn) {
-            const original = btn.innerHTML;
-            const emails = getSelectedEmails().join(', ');
+        function fallbackCopyText(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
 
-            navigator.clipboard.writeText(emails)
-                .then(() => {
-                    btn.textContent = 'Emails copiés !';
-                    btn.disabled = true;
-                    copyEmailsHelp.textContent = 'Emails copiés. Ouvrez Gmail et collez-les dans le champ À.';
-                    setTimeout(() => {
-                        btn.innerHTML = original;
-                        copyEmailsHelp.textContent = 'Copiez les emails puis collez-les dans le champ À de Gmail.';
-                        updateSelectionState();
-                    }, 2500);
-                })
-                .catch(err => {
-                    console.error('Erreur lors de la copie :', err);
-                    copyEmailsHelp.textContent = 'La copie a échoué. Vérifiez les autorisations du presse-papiers dans votre navigateur.';
-                });
+            const copied = document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            return copied;
         }
 
+        async function copySelectedEmails() {
+            const original = copyEmailsButton.innerHTML;
+            const emails = getSelectedEmails().join(', ');
+
+            if (!emails) {
+                copyEmailsHelp.textContent = 'Sélectionnez au moins un destinataire.';
+                return;
+            }
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(emails);
+                } else if (!fallbackCopyText(emails)) {
+                    throw new Error('Fallback copy failed');
+                }
+
+                copyEmailsButton.textContent = 'Emails copiés !';
+                copyEmailsButton.disabled = true;
+                copyEmailsHelp.textContent = 'Emails copiés. Ouvrez Gmail et collez-les dans le champ À.';
+
+                setTimeout(() => {
+                    copyEmailsButton.innerHTML = original;
+                    copyEmailsHelp.textContent = 'Copiez les emails puis collez-les dans le champ À de Gmail.';
+                    updateSelectionState();
+                }, 2500);
+            } catch (err) {
+                console.error('Erreur lors de la copie :', err);
+                copyEmailsHelp.textContent = 'La copie a échoué. Essayez depuis un navigateur autorisant le presse-papiers.';
+            }
+        }
+
+        copyEmailsButton.addEventListener('click', copySelectedEmails);
         updateSelectionState();
     </script>
 {% endblock %}
