@@ -93,18 +93,18 @@ class ProductCrudController extends AbstractCrudController
                 ->setBasePath('/uploads/images')
                 ->setUploadDir('public/uploads/images')
                 ->setUploadedFileNamePattern('[slug]-[timestamp].[extension]')
+                ->setFileConstraints(
+                    new ImageConstraint(
+                        maxWidth: 8000,
+                        maxHeight: 8000,
+                        maxPixels: 40000000,
+                        maxWidthMessage: 'L’image est trop large (maximum {{ max_width }} px).',
+                        maxHeightMessage: 'L’image est trop haute (maximum {{ max_height }} px).',
+                        maxPixelsMessage: 'L’image est trop grande pour être traitée.',
+                    )
+                )
                 ->setFormTypeOptions([
                     'required' => Crud::PAGE_NEW === $pageName,
-                    'constraints' => [
-                        new ImageConstraint(
-                            maxWidth: 8000,
-                            maxHeight: 8000,
-                            maxPixels: 40000000,
-                            maxWidthMessage: 'L’image est trop large (maximum {{ max_width }} px).',
-                            maxHeightMessage: 'L’image est trop haute (maximum {{ max_height }} px).',
-                            maxPixelsMessage: 'L’image est trop grande pour être traitée.',
-                        ),
-                    ],
                 ])
                 ->addCssClass('avatar-image'),
 
