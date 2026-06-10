@@ -179,6 +179,11 @@ final class ProductImageProcessor
     {
         $temporaryPath = sprintf('%s/.%s.tmp', dirname($path), uniqid('product-image-', true));
 
+        if (in_array($mimeType, ['image/png', 'image/webp'], true)) {
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+        }
+
         $written = match ($mimeType) {
             'image/jpeg' => $this->writeJpeg($image, $temporaryPath),
             'image/png' => imagepng($image, $temporaryPath, $this->pngCompression),
