@@ -5,6 +5,15 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     uploads_path: '%env(resolve:UPLOADS_PATH)%'
+    product_images_upload_dir: '%kernel.project_dir%/public/uploads/images'
+    product_images_max_width: 1600
+    product_images_max_height: 1600
+    product_images_max_source_width: 8000
+    product_images_max_source_height: 8000
+    product_images_max_source_pixels: 40000000
+    product_images_jpeg_quality: 82
+    product_images_png_compression: 8
+    product_images_webp_quality: 82
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -14,6 +23,18 @@ services:
     App\Mapper\OrderMapper:
         arguments:
             $params: '@parameter_bag'
+
+    App\Service\Image\ProductImageProcessor:
+        arguments:
+            $uploadDir: '%product_images_upload_dir%'
+            $maxWidth: '%product_images_max_width%'
+            $maxHeight: '%product_images_max_height%'
+            $maxSourceWidth: '%product_images_max_source_width%'
+            $maxSourceHeight: '%product_images_max_source_height%'
+            $maxSourcePixels: '%product_images_max_source_pixels%'
+            $jpegQuality: '%product_images_jpeg_quality%'
+            $pngCompression: '%product_images_png_compression%'
+            $webpQuality: '%product_images_webp_quality%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -26,4 +47,3 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-

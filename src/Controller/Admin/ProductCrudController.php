@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Product;
 use App\Enum\ProductUnit;
 use App\Service\Admin\ProductService;
+use App\Service\Image\ProductImageProcessor;
 use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud, Filters};
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
@@ -29,17 +30,24 @@ use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use Symfony\Component\Validator\Constraints\Image as ImageConstraint;
 
 
 class ProductCrudController extends AbstractCrudController
 {
     private Security $security;
     private ProductService $productService;
+    private ProductImageProcessor $productImageProcessor;
 
-    public function __construct(Security $security, ProductService $productService)
+    public function __construct(
+        Security $security,
+        ProductService $productService,
+        ProductImageProcessor $productImageProcessor
+    )
     {
         $this->security = $security;
         $this->productService = $productService;
+        $this->productImageProcessor = $productImageProcessor;
     }
 
     public static function getEntityFqcn(): string
@@ -87,6 +95,16 @@ class ProductCrudController extends AbstractCrudController
                 ->setUploadedFileNamePattern('[slug]-[timestamp].[extension]')
                 ->setFormTypeOptions([
                     'required' => Crud::PAGE_NEW === $pageName,
+                    'constraints' => [
+                        new ImageConstraint(
+                            maxWidth: 8000,
+                            maxHeight: 8000,
+                            maxPixels: 40000000,
+                            maxWidthMessage: 'L’image est trop large (maximum {{ max_width }} px).',
+                            maxHeightMessage: 'L’image est trop haute (maximum {{ max_height }} px).',
+                            maxPixelsMessage: 'L’image est trop grande pour être traitée.',
+                        ),
+                    ],
                 ])
                 ->addCssClass('avatar-image'),
 
@@ -282,6 +300,7 @@ class ProductCrudController extends AbstractCrudController
         }
 
         $this->handleInterDependingOnUnit($entityInstance);
+        $this->optimizeImage($entityInstance);
 
         parent::persistEntity($entityManager, $entityInstance);
     }
@@ -295,6 +314,13 @@ class ProductCrudController extends AbstractCrudController
 
         $this->handleInterDependingOnUnit($entityInstance);
 
+        $originalData = $entityManager->getUnitOfWork()->getOriginalEntityData($entityInstance);
+        $originalImage = $originalData['image'] ?? null;
+
+        if ($originalImage !== $entityInstance->getImage()) {
+            $this->optimizeImage($entityInstance);
+        }
+
         parent::updateEntity($entityManager, $entityInstance);
     }
 
@@ -303,5 +329,15 @@ class ProductCrudController extends AbstractCrudController
         if ($product->getUnit() !== ProductUnit::KG) {
             $product->setInter(null);
         }
+    }
+
+    private function optimizeImage(Product $product): void
+    {
+        $image = $product->getImage();
+        if (null === $image || '' === $image) {
+            return;
+        }
+
+        $this->productImageProcessor->optimize($image);
     }
 }
