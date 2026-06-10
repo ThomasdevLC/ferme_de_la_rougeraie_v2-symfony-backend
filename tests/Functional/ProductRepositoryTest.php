@@ -35,25 +35,25 @@ class ProductRepositoryTest extends KernelTestCase
     public function testFindDeletableProductIds(): void
     {
         $unusedProduct = $this->createProduct('Unused');
-        $deletedOrderProduct = $this->createProduct('Deleted order only');
-        $activeOrderProduct = $this->createProduct('Active and deleted orders');
+        $doneOrderProduct = $this->createProduct('Done order only');
+        $pendingOrderProduct = $this->createProduct('Pending and done orders');
 
-        $this->addOrderLine($deletedOrderProduct, true);
-        $this->addOrderLine($activeOrderProduct, true);
-        $this->addOrderLine($activeOrderProduct, false);
+        $this->addOrderLine($doneOrderProduct, true);
+        $this->addOrderLine($pendingOrderProduct, true);
+        $this->addOrderLine($pendingOrderProduct, false);
         $this->em->flush();
 
         /** @var ProductRepository $repository */
         $repository = $this->em->getRepository(Product::class);
         $deletableIds = $repository->findDeletableProductIds([
             $unusedProduct->getId(),
-            $deletedOrderProduct->getId(),
-            $activeOrderProduct->getId(),
+            $doneOrderProduct->getId(),
+            $pendingOrderProduct->getId(),
         ]);
 
         $this->assertContains($unusedProduct->getId(), $deletableIds);
-        $this->assertContains($deletedOrderProduct->getId(), $deletableIds);
-        $this->assertNotContains($activeOrderProduct->getId(), $deletableIds);
+        $this->assertContains($doneOrderProduct->getId(), $deletableIds);
+        $this->assertNotContains($pendingOrderProduct->getId(), $deletableIds);
     }
 
     private function createProduct(string $name): Product
@@ -70,14 +70,14 @@ class ProductRepositoryTest extends KernelTestCase
         return $product;
     }
 
-    private function addOrderLine(Product $product, bool $isDeleted): void
+    private function addOrderLine(Product $product, bool $done): void
     {
         $order = (new Order())
             ->setUser($this->admin)
             ->setTotal(100)
             ->setCreatedAt(new \DateTimeImmutable())
             ->setPickupDate(new \DateTimeImmutable('+3 days'))
-            ->setIsDeleted($isDeleted);
+            ->setDone($done);
 
         $line = (new ProductOrder())
             ->setProduct($product)
