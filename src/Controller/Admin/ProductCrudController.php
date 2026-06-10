@@ -269,7 +269,7 @@ class ProductCrudController extends AbstractCrudController
 
         if (!empty($nonDeletableNames)) {
             $this->addFlash('warning', sprintf(
-                'Les produits suivants n\'ont pas été supprimés car ils sont liés à des commandes : %s',
+                'Les produits suivants n\'ont pas été supprimés car ils sont liés à des commandes en cours : %s',
                 implode(', ', $nonDeletableNames)
             ));
         } else {

@@ -39,14 +39,14 @@ class ProductRepository extends ServiceEntityRepository
 
 
     /**
-     * @return int[] Get product IDs that can be deleted (not linked to orders).
+     * @return int[] Get product IDs that can be deleted (not linked to pending orders).
      */
     public function findDeletableProductIds(array $ids): array
     {
         $qb = $this->createQueryBuilder('p')
             ->select('p.id')
             ->leftJoin('p.productOrders', 'po')
-            ->leftJoin('po.order', 'o', 'WITH', 'o.isDeleted = false')
+            ->leftJoin('po.order', 'o', 'WITH', 'o.done = false')
             ->where('p.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->groupBy('p.id')
@@ -56,7 +56,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return string[] Get product names that can not be deleted ( linked to orders)
+     * @return string[] Get product names that can not be deleted (linked to pending orders)
      */
     public function findNonDeletableProductNames(array $ids): array
     {
@@ -66,7 +66,7 @@ class ProductRepository extends ServiceEntityRepository
                 ->join('p.productOrders', 'po')
                 ->join('po.order', 'o')
                 ->where('p.id IN (:ids)')
-                ->andWhere('o.isDeleted = false')
+                ->andWhere('o.done = false')
                 ->setParameter('ids', $ids)
                 ->getQuery()
                 ->getScalarResult(),
