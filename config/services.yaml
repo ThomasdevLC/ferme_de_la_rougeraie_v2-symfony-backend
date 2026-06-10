@@ -6,14 +6,14 @@
 parameters:
     uploads_path: '%env(resolve:UPLOADS_PATH)%'
     product_images_upload_dir: '%kernel.project_dir%/public/uploads/images'
-    product_images_max_width: 1600
-    product_images_max_height: 1600
+    product_images_max_width: 800
+    product_images_max_height: 800
     product_images_max_source_width: 8000
     product_images_max_source_height: 8000
     product_images_max_source_pixels: 40000000
     product_images_jpeg_quality: 82
     product_images_png_compression: 8
-    product_images_webp_quality: 82
+    product_images_webp_quality: 78
 services:
     # default configuration for services in *this* file
     _defaults:
