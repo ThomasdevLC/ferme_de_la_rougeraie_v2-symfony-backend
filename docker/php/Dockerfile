@@ -6,14 +6,22 @@ FROM php:8.2-fpm AS builder
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    libfreetype6-dev \
     libicu-dev \
+    libjpeg62-turbo-dev \
     libonig-dev \
+    libpng-dev \
+    libwebp-dev \
     libzip-dev \
     zip \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
+
 RUN docker-php-ext-install \
+    exif \
+    gd \
     pdo \
     pdo_mysql \
     intl \
@@ -41,14 +49,22 @@ RUN echo "APP_ENV=prod" > .env
 FROM php:8.2-fpm
 
 RUN apt-get update && apt-get install -y \
+    libfreetype6-dev \
     libicu-dev \
+    libjpeg62-turbo-dev \
     libonig-dev \
+    libpng-dev \
+    libwebp-dev \
     libzip-dev \
     zip \
     nginx \
     && rm -rf /var/lib/apt/lists/*
 
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
+
 RUN docker-php-ext-install \
+    exif \
+    gd \
     pdo \
     pdo_mysql \
     intl \
