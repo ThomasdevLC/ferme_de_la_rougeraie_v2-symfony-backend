@@ -21,9 +21,11 @@ class ProductStoreRepository extends ServiceEntityRepository
     public function findDisplayedAvailableProducts(): array
     {
         return $this->createQueryBuilder('p')
+            ->addSelect("CASE WHEN SUBSTRING(p.name, 1, 1) >= '0' AND SUBSTRING(p.name, 1, 1) <= '9' THEN 1 ELSE 0 END AS HIDDEN nameOrder")
             ->where('p.isDisplayed = true')
             ->andWhere('p.isDeleted = false')
-            ->orderBy('p.name', 'ASC')
+            ->orderBy('nameOrder', 'ASC')
+            ->addOrderBy('p.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
