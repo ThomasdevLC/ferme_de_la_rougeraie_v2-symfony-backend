@@ -44,6 +44,12 @@ class ProductApiTest extends WebTestCase
         $this->assertArrayHasKey('id', $data[0]);
         $this->assertArrayHasKey('name', $data[0]);
         $this->assertArrayHasKey('price', $data[0]);
+
+        // Variants contract: every product carries these two fields.
+        $this->assertArrayHasKey('hasVariants', $data[0]);
+        $this->assertIsBool($data[0]['hasVariants']);
+        $this->assertArrayHasKey('variants', $data[0]);
+        $this->assertIsArray($data[0]['variants']);
     }
 
     public function testProductWithoutStockManagementAppearsWithNullStock(): void
