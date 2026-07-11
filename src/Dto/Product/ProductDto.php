@@ -4,10 +4,13 @@ namespace App\Dto\Product;
 
 readonly class ProductDto
 {
+    /**
+     * @param ProductVariantDto[] $variants
+     */
     public function __construct(
         public int     $id,
         public string  $name,
-        public float   $price,
+        public ?float  $price,
         public string  $unit,
         public string  $image,
         public bool    $hasStock,
@@ -16,6 +19,8 @@ readonly class ProductDto
         public bool    $discount,
         public ?string $discountText,
         public ?float  $inter,
+        public bool    $hasVariants,
+        public array   $variants,
     )
     {}
 }

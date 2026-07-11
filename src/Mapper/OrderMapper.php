@@ -34,7 +34,7 @@ class OrderMapper
             $productDto = new ProductDto(
                 id: $prod->getId(),
                 name: $prod->getName(),
-                price: round($prod->getPrice() / 100, 2),
+                price: $prod->hasVariants() ? null : round($prod->getPrice() / 100, 2),
                 unit:         $unitLabel,
                 image:        $imagePath,
                 hasStock:    $prod->hasStock(),
@@ -42,7 +42,9 @@ class OrderMapper
                 limited: (bool) $prod->isLimited(),
                 discount: (bool) $prod->isDiscount(),
                 discountText: $prod->getDiscountText(),
-                inter: $prod->getInter()
+                inter: $prod->getInter(),
+                hasVariants: $prod->hasVariants(),
+                variants: [],
             );
             $qty = (float) $po->getQuantity();
 
