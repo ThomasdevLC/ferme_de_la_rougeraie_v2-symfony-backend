@@ -24,7 +24,7 @@ class Product
     #[AutoTitleCase]
     private ?string $name = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $price = null;
 
     #[ORM\Column(nullable: false, enumType: ProductUnit::class )]
@@ -121,7 +121,7 @@ class Product
         return $this->price;
     }
 
-    public function setPrice(int $price): static
+    public function setPrice(?int $price): static
     {
         $this->price = $price;
 
@@ -134,9 +134,9 @@ class Product
         return $this->price !== null ? $this->price / 100 : null;
     }
 
-    public function setPriceInEuros(float $price): static
+    public function setPriceInEuros(?float $price): static
     {
-        $this->price = (int) round($price * 100);
+        $this->price = $price !== null ? (int) round($price * 100) : null;
         return $this;
     }
 
@@ -401,7 +401,7 @@ class Product
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void
     {
-        if ($this->hasStock && ($this->stock === null || $this->stock <= 0)) {
+        if (!$this->hasVariants && $this->hasStock && ($this->stock === null || $this->stock <= 0)) {
             $context->buildViolation('Le stock est requis ')
                 ->atPath('stock')
                 ->addViolation();
@@ -410,6 +410,18 @@ class Product
         if ($this->unit === ProductUnit::KG && ($this->inter === null || $this->inter <= 0)) {
             $context->buildViolation('L\'intervalle est requis pour un produit vendu au kilo.')
                 ->atPath('inter')
+                ->addViolation();
+        }
+
+        if (!$this->hasVariants && $this->price === null) {
+            $context->buildViolation('Le prix est requis.')
+                ->atPath('priceInEuros')
+                ->addViolation();
+        }
+
+        if ($this->hasVariants && $this->variants->isEmpty()) {
+            $context->buildViolation('Ajoutez au moins un variant.')
+                ->atPath('variants')
                 ->addViolation();
         }
 

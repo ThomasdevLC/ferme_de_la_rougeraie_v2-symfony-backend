@@ -73,6 +73,19 @@ class ProductVariant
         return $this;
     }
 
+    //  Prices in euros ( EasyAdmin )
+    public function getPriceInEuros(): ?float
+    {
+        return $this->price !== null ? $this->price / 100 : null;
+    }
+
+    public function setPriceInEuros(float $price): static
+    {
+        $this->price = (int) round($price * 100);
+
+        return $this;
+    }
+
     public function getStock(): ?float
     {
         return $this->stock;
