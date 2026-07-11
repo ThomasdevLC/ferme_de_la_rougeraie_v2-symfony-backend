@@ -23,6 +23,10 @@ class ProductOrder
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: 'product_variant_id', referencedColumnName: 'id', nullable: true)]
+    private ?ProductVariant $productVariant = null;
+
     #[ORM\ManyToOne(
         targetEntity: Order::class,
         inversedBy: 'productOrders'
@@ -71,6 +75,18 @@ class ProductOrder
     public function setProduct(?Product $product): static
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    public function getProductVariant(): ?ProductVariant
+    {
+        return $this->productVariant;
+    }
+
+    public function setProductVariant(?ProductVariant $productVariant): static
+    {
+        $this->productVariant = $productVariant;
 
         return $this;
     }
