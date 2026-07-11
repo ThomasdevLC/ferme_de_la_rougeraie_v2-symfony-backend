@@ -397,6 +397,46 @@ class Product
             : '✔ Disponible';
     }
 
+    /**
+     * Human-readable price for admin lists: a single price for simple
+     * products, or a min–max range built from the variants' prices.
+     */
+    public function getPriceDisplay(): string
+    {
+        if ($this->hasVariants) {
+            $prices = $this->variants
+                ->map(fn(ProductVariant $v) => $v->getPrice())
+                ->toArray();
+
+            if ($prices === []) {
+                return 'Variantes';
+            }
+
+            $min = min($prices);
+            $max = max($prices);
+
+            return $min === $max
+                ? $this->formatCentsAsEuros($min)
+                : $this->formatCentsAsEuros($min) . ' – ' . $this->formatCentsAsEuros($max);
+        }
+
+        return $this->price !== null ? $this->formatCentsAsEuros($this->price) : '';
+    }
+
+    private function formatCentsAsEuros(int $cents): string
+    {
+        return number_format($cents / 100, 2, ',', ' ') . ' €';
+    }
+
+    /**
+     * Badge value for admin lists: 'Variants' for variant products,
+     * null (no badge) for simple ones.
+     */
+    public function getVariantLabel(): ?string
+    {
+        return $this->hasVariants ? 'Variants' : null;
+    }
+
 
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void

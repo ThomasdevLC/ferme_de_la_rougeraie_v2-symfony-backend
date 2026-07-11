@@ -32,6 +32,11 @@ class ProductVariant
     #[ORM\Column(options: ['default' => 0])]
     private int $position = 0;
 
+    public function __toString(): string
+    {
+        return $this->label ?? 'Variant';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
