@@ -57,6 +57,9 @@ class Product
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isDeleted = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $hasVariants = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -259,6 +262,18 @@ class Product
     public function setIsDeleted(bool $isDeleted): static
     {
         $this->isDeleted = $isDeleted;
+
+        return $this;
+    }
+
+    public function hasVariants(): bool
+    {
+        return $this->hasVariants;
+    }
+
+    public function setHasVariants(bool $hasVariants): static
+    {
+        $this->hasVariants = $hasVariants;
 
         return $this;
     }
