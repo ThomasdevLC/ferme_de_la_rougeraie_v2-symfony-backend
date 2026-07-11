@@ -47,10 +47,16 @@ class OrderMapper
                 variants: [],
             );
             $qty = (float) $po->getQuantity();
+            $variant = $po->getProductVariant();
 
-            $availableStock = null;
-            if ($productDto->hasStock && $productDto->stock !== null) {
+            if ($variant !== null) {
+                $availableStock = $variant->getStock() !== null
+                    ? $variant->getStock() + $qty
+                    : null;
+            } elseif ($productDto->hasStock && $productDto->stock !== null) {
                 $availableStock = $productDto->stock + $qty;
+            } else {
+                $availableStock = null;
             }
 
             $items[] = new OrderItemDto(
@@ -58,7 +64,8 @@ class OrderMapper
                 quantity:  $qty,
                 unitPrice: round($unitPriceEuros, 2),
                 lineTotal: round($unitPriceEuros * $qty, 2),
-                availableStock: $availableStock
+                availableStock: $availableStock,
+                variantLabel: $variant?->getLabel()
             );
 
         }
@@ -96,22 +103,7 @@ class OrderMapper
 
         $total = 0;
         foreach ($productData as $entry) {
-            $product  = $entry['product'];
-            $quantity = $entry['quantity'];
-
-            $unitPrice = $product->getPrice();
-
-            $lineTotal = (int) round($unitPrice * $quantity);
-
-            $po = new ProductOrder();
-            $po
-                ->setOrder($order)
-                ->setProduct($product)
-                ->setQuantity($quantity)
-                ->setUnitPrice($unitPrice);
-            $order->addProductOrder($po);
-
-            $total += $lineTotal;
+            $total += $this->appendLine($order, $entry);
         }
         $order->setTotal($total);
 
@@ -127,21 +119,36 @@ class OrderMapper
 
         $total = 0;
         foreach ($productData as $entry) {
-            $product   = $entry['product'];
-            $quantity  = $entry['quantity'];
-            $unitPrice = $product->getPrice();
-
-            $po = (new ProductOrder())
-                ->setOrder($order)
-                ->setProduct($product)
-                ->setQuantity($quantity)
-                ->setUnitPrice($unitPrice);
-
-            $order->addProductOrder($po);
-            $total += (int) round($unitPrice * $quantity);
+            $total += $this->appendLine($order, $entry);
         }
 
         $order->setTotal($total);
+    }
+
+    /**
+     * Build one order line from a productData entry, attach it to the order,
+     * and return its line total (cents). Freezes the variant price when the
+     * line targets a variant, otherwise the product price.
+     *
+     * @param array{product: \App\Entity\Product, variant?: ?\App\Entity\ProductVariant, quantity: float} $entry
+     */
+    private function appendLine(Order $order, array $entry): int
+    {
+        $product  = $entry['product'];
+        $variant  = $entry['variant'] ?? null;
+        $quantity = $entry['quantity'];
+
+        $unitPrice = $variant !== null ? $variant->getPrice() : $product->getPrice();
+
+        $po = (new ProductOrder())
+            ->setOrder($order)
+            ->setProduct($product)
+            ->setProductVariant($variant)
+            ->setQuantity($quantity)
+            ->setUnitPrice($unitPrice);
+        $order->addProductOrder($po);
+
+        return (int) round($unitPrice * $quantity);
     }
 
 

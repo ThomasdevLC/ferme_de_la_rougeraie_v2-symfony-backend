@@ -16,6 +16,7 @@ class CartItemMapper
             return new CartItemDto(
                 productId: $item['productId'],
                 quantity: $item['quantity'],
+                variantId: $item['variantId'] ?? null,
             );
         }, $items);
     }

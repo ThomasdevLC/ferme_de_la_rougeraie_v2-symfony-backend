@@ -8,6 +8,7 @@ readonly class CartItemDto
 {
 public function __construct(
 public int $productId,
-public float  $quantity
+public float  $quantity,
+public ?int $variantId = null
 ) {}
 }

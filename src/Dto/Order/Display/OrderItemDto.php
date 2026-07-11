@@ -15,5 +15,6 @@ readonly class OrderItemDto
         public float  $unitPrice,
         public float $lineTotal,
         public ?float $availableStock,
+        public ?string $variantLabel = null,
     ) {}
 }

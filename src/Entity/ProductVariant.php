@@ -126,4 +126,21 @@ class ProductVariant
 
         return $this;
     }
+
+    public function canDecrementStock(float $quantity): bool
+    {
+        return $this->stock !== null && $this->stock >= $quantity;
+    }
+
+    public function decrementStock(float $quantity): void
+    {
+        if ($this->stock === null) {
+            return;
+        }
+
+        $this->stock -= $quantity;
+        if ($this->stock <= 0) {
+            $this->isDisplayed = false;
+        }
+    }
 }
