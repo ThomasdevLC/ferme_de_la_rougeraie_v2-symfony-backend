@@ -97,9 +97,10 @@ class OrderMapper
         $total = 0;
         foreach ($productData as $entry) {
             $product  = $entry['product'];
+            $variant  = $entry['variant'] ?? null;
             $quantity = $entry['quantity'];
 
-            $unitPrice = $product->getPrice();
+            $unitPrice = $variant !== null ? $variant->getPrice() : $product->getPrice();
 
             $lineTotal = (int) round($unitPrice * $quantity);
 
@@ -107,6 +108,7 @@ class OrderMapper
             $po
                 ->setOrder($order)
                 ->setProduct($product)
+                ->setProductVariant($variant)
                 ->setQuantity($quantity)
                 ->setUnitPrice($unitPrice);
             $order->addProductOrder($po);

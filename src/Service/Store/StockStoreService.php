@@ -34,6 +34,10 @@ class StockStoreService
             throw new \DomainException("Produit non disponible");
         }
 
+        if ($product->hasVariants()) {
+            throw new \DomainException("Ce produit nécessite le choix d'une déclinaison.");
+        }
+
         if ($product->hasStock() && !$product->canDecrementStock($quantity)) {
             throw new \DomainException(
                 "Stock insuffisant pour le produit : {$product->getName()}. Quantité restante : {$product->getStock()}."

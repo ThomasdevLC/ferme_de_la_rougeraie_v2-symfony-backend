@@ -61,13 +61,25 @@ class OrderStoreService
 
         $productData = [];
         foreach ($dto->items as $item) {
-            $product = $this->stockService
-                ->checkAndDecreaseStock($item->productId, $item->quantity);
+            if ($item->variantId !== null) {
+                $variant = $this->stockService
+                    ->checkAndDecreaseVariantStock($item->variantId, $item->quantity);
 
-            $productData[] = [
-                'product'  => $product,
-                'quantity' => $item->quantity,
-            ];
+                $productData[] = [
+                    'product'  => $variant->getProduct(),
+                    'variant'  => $variant,
+                    'quantity' => $item->quantity,
+                ];
+            } else {
+                $product = $this->stockService
+                    ->checkAndDecreaseStock($item->productId, $item->quantity);
+
+                $productData[] = [
+                    'product'  => $product,
+                    'variant'  => null,
+                    'quantity' => $item->quantity,
+                ];
+            }
         }
 
         $order = $this->mapper->fromDto($dto, $user, $productData);
