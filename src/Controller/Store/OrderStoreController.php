@@ -103,7 +103,8 @@ class OrderStoreController extends AbstractController
                 items: array_map(
                     fn(array $item) => new CartItemDto(
                         productId: $item['productId'],
-                        quantity:  $item['quantity']
+                        quantity:  $item['quantity'],
+                        variantId: $item['variantId'] ?? null
                     ),
                     $data['items']
                 ),
@@ -151,7 +152,8 @@ class OrderStoreController extends AbstractController
                 items: array_map(
                     fn(array $item) => new CartItemDto(
                         productId: $item['productId'],
-                        quantity:  $item['quantity']
+                        quantity:  $item['quantity'],
+                        variantId: $item['variantId'] ?? null
                     ),
                     $data['items']
                 ),
