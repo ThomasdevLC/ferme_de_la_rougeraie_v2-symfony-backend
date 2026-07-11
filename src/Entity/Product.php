@@ -77,9 +77,21 @@ class Product
     #[ORM\OneToMany(targetEntity: ProductOrder::class, mappedBy: 'product')]
     private Collection $productOrders;
 
+    /**
+     * @var Collection<int, ProductVariant>
+     */
+    #[ORM\OneToMany(
+        targetEntity: ProductVariant::class,
+        mappedBy: 'product',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    private Collection $variants;
+
     public function __construct()
     {
         $this->productOrders = new ArrayCollection();
+        $this->variants = new ArrayCollection();
         $this->isDisplayed = false;
         $this->hasStock = false;
         $this->limited = false;
@@ -325,6 +337,35 @@ class Product
         if ($this->productOrders->removeElement($productOrder)) {
             if ($productOrder->getProduct() === $this) {
                 $productOrder->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductVariant>
+     */
+    public function getVariants(): Collection
+    {
+        return $this->variants;
+    }
+
+    public function addVariant(ProductVariant $variant): static
+    {
+        if (!$this->variants->contains($variant)) {
+            $this->variants->add($variant);
+            $variant->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVariant(ProductVariant $variant): static
+    {
+        if ($this->variants->removeElement($variant)) {
+            if ($variant->getProduct() === $this) {
+                $variant->setProduct(null);
             }
         }
 
