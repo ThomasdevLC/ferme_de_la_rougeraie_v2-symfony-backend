@@ -3,9 +3,12 @@
 namespace App\Tests\Unit\Mapper;
 
 use App\Dto\Order\Create\OrderCreateDto;
+use App\Entity\Order;
 use App\Entity\Product;
+use App\Entity\ProductOrder;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductUnit;
 use App\Mapper\OrderMapper;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -44,5 +47,52 @@ class OrderMapperTest extends TestCase
 
         // Total = 180*2 + 250*1
         $this->assertSame(610, $order->getTotal());
+    }
+
+    public function testToDtoExposesVariantLabelAndVariantStock(): void
+    {
+        $product = (new Product())
+            ->setName('Concombre')
+            ->setUnit(ProductUnit::PIECE)
+            ->setImage('concombre.jpg')
+            ->setHasVariants(true);
+        $this->setId($product, 253);
+
+        $variant = (new ProductVariant())
+            ->setLabel('Gros')
+            ->setPrice(180)
+            ->setStock(10)
+            ->setIsDisplayed(true);
+
+        $order = (new Order())
+            ->setTotal(360)
+            ->setCreatedAt(new DateTimeImmutable())
+            ->setPickupDate(new DateTimeImmutable('+3 days'));
+        $this->setId($order, 1);
+
+        $order->addProductOrder(
+            (new ProductOrder())
+                ->setProduct($product)
+                ->setProductVariant($variant)
+                ->setQuantity(2)
+                ->setUnitPrice(180)
+        );
+
+        $dto = (new OrderMapper())->toDto($order);
+        $item = $dto->items[0];
+
+        $this->assertSame('Gros', $item->variantLabel);
+        $this->assertSame(1.8, $item->unitPrice);
+        // Variant product exposes no product-level price.
+        $this->assertNull($item->product->price);
+        // Available stock is the variant's (10) plus the ordered quantity (2).
+        $this->assertSame(12.0, $item->availableStock);
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $ref = new \ReflectionProperty($entity, 'id');
+        $ref->setAccessible(true);
+        $ref->setValue($entity, $id);
     }
 }

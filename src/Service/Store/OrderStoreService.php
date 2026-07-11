@@ -2,6 +2,7 @@
 
 namespace App\Service\Store;
 
+use App\Dto\Order\Create\CartItemDto;
 use App\Dto\Order\Create\OrderCreateDto;
 use App\Dto\Order\Display\OrderDetailsDto;
 use App\Entity\Order;
@@ -59,28 +60,7 @@ class OrderStoreService
 
         $this->checkPickupDateWithinWindow($pickupDate);
 
-        $productData = [];
-        foreach ($dto->items as $item) {
-            if ($item->variantId !== null) {
-                $variant = $this->stockService
-                    ->checkAndDecreaseVariantStock($item->variantId, $item->quantity);
-
-                $productData[] = [
-                    'product'  => $variant->getProduct(),
-                    'variant'  => $variant,
-                    'quantity' => $item->quantity,
-                ];
-            } else {
-                $product = $this->stockService
-                    ->checkAndDecreaseStock($item->productId, $item->quantity);
-
-                $productData[] = [
-                    'product'  => $product,
-                    'variant'  => null,
-                    'quantity' => $item->quantity,
-                ];
-            }
-        }
+        $productData = $this->decreaseStockAndBuildProductData($dto->items);
 
         $order = $this->mapper->fromDto($dto, $user, $productData);
 
@@ -105,8 +85,17 @@ class OrderStoreService
         }
 
         foreach ($order->getProductOrders() as $oldLine) {
-            $this->stockService
-                ->increaseStock($oldLine->getProduct()->getId(), $oldLine->getQuantity());
+            if ($oldLine->getProductVariant() !== null) {
+                $this->stockService->increaseVariantStock(
+                    $oldLine->getProductVariant()->getId(),
+                    $oldLine->getQuantity()
+                );
+            } else {
+                $this->stockService->increaseStock(
+                    $oldLine->getProduct()->getId(),
+                    $oldLine->getQuantity()
+                );
+            }
             $order->removeProductOrder($oldLine);
         }
 
@@ -115,19 +104,48 @@ class OrderStoreService
         $this->checkPickupDateWithinWindow($newPickupDate);
         $order->setPickupDate($newPickupDate);
 
-        $productData = [];
-        foreach ($dto->items as $item) {
-            $productData[] = [
-                'product'  => $this->stockService
-                    ->checkAndDecreaseStock($item->productId, $item->quantity),
-                'quantity' => $item->quantity,
-            ];
-        }
+        $productData = $this->decreaseStockAndBuildProductData($dto->items);
 
         $this->mapper->updateFromDto($dto, $order, $productData);
 
         $this->orderStoreRepository->save($order);
         return $this->mapper->toDto($order);
+    }
+
+    /**
+     * Decrease stock for each cart item and build the productData rows the
+     * mapper needs. Branches on variantId: a variant line decrements the
+     * variant's stock, a simple line the product's.
+     *
+     * @param CartItemDto[] $items
+     * @return array<int, array{product: \App\Entity\Product, variant: ?\App\Entity\ProductVariant, quantity: float}>
+     */
+    private function decreaseStockAndBuildProductData(array $items): array
+    {
+        $productData = [];
+        foreach ($items as $item) {
+            if ($item->variantId !== null) {
+                $variant = $this->stockService
+                    ->checkAndDecreaseVariantStock($item->variantId, $item->quantity);
+
+                $productData[] = [
+                    'product'  => $variant->getProduct(),
+                    'variant'  => $variant,
+                    'quantity' => $item->quantity,
+                ];
+            } else {
+                $product = $this->stockService
+                    ->checkAndDecreaseStock($item->productId, $item->quantity);
+
+                $productData[] = [
+                    'product'  => $product,
+                    'variant'  => null,
+                    'quantity' => $item->quantity,
+                ];
+            }
+        }
+
+        return $productData;
     }
 
     /**

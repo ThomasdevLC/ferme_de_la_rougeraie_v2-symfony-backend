@@ -4,8 +4,11 @@ namespace App\Tests\Unit\Service;
 
 use App\Dto\Order\Create\CartItemDto;
 use App\Dto\Order\Create\OrderCreateDto;
+use App\Dto\Order\Display\OrderDetailsDto;
 use App\Entity\Order;
 use App\Entity\Product;
+use App\Entity\ProductOrder;
+use App\Entity\ProductVariant;
 use App\Entity\User;
 use App\Mapper\OrderMapper;
 use App\Repository\Store\OrderStoreRepository;
@@ -100,5 +103,62 @@ class OrderStoreServiceTest extends TestCase
             dto: $this->buildDto(new DateTimeImmutable('+3 days', $tz)),
             user: $user
         );
+    }
+
+    public function testEditOrderRestoresVariantStockForVariantLines(): void
+    {
+        $tz    = new DateTimeZone('Europe/Paris');
+        $order = (new Order())->setPickupDate(new DateTimeImmutable('+3 days', $tz));
+
+        $variant = new ProductVariant();
+        $this->setId($variant, 5);
+
+        $order->addProductOrder(
+            (new ProductOrder())
+                ->setProduct(new Product())
+                ->setProductVariant($variant)
+                ->setQuantity(2)
+                ->setUnitPrice(100)
+        );
+
+        $repo = $this->createMock(OrderStoreRepository::class);
+        $repo->method('findOneByIdAndUser')->willReturn($order);
+
+        $stock = $this->createMock(StockStoreService::class);
+        // Variant line must restore variant stock, not product stock.
+        $stock->expects($this->once())->method('increaseVariantStock')->with(5, 2.0);
+        $stock->expects($this->never())->method('increaseStock');
+        $stock->method('checkAndDecreaseStock')->willReturn(new Product());
+
+        $mapper = $this->createMock(OrderMapper::class);
+        $mapper->method('toDto')->willReturn($this->buildOrderDetailsDto());
+
+        $service = $this->buildService($repo, $stock, $mapper);
+        $service->editOrder(
+            orderId: 1,
+            dto: $this->buildDto(new DateTimeImmutable('+3 days', $tz)),
+            user: new User()
+        );
+    }
+
+    private function buildOrderDetailsDto(): OrderDetailsDto
+    {
+        return new OrderDetailsDto(
+            id: 1,
+            total: 0.0,
+            pickupDate: new DateTimeImmutable(),
+            pickupDay: 1,
+            createdAt: new DateTimeImmutable(),
+            done: false,
+            isEditable: true,
+            items: []
+        );
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $ref = new \ReflectionProperty($entity, 'id');
+        $ref->setAccessible(true);
+        $ref->setValue($entity, $id);
     }
 }
