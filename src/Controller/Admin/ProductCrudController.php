@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Product;
 use App\Enum\ProductUnit;
+use App\Form\ProductVariantType;
 use App\Service\Admin\ProductService;
 use App\Service\Image\ProductImageProcessor;
 use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud, Filters};
@@ -16,6 +17,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
@@ -89,6 +91,11 @@ class ProductCrudController extends AbstractCrudController
                 ->hideOnForm()
                 ->hideOnIndex(),
 
+            BooleanField::new('hasVariants')
+                ->setLabel('Variants')
+                ->onlyOnForms()
+                ->setFormTypeOption('row_attr', ['class' => 'has-variants-wrapper']),
+
             ImageField::new('image')
                 ->setBasePath('/uploads/images')
                 ->setUploadDir('public/uploads/images')
@@ -110,12 +117,22 @@ class ProductCrudController extends AbstractCrudController
 
             TextField::new('name')->setLabel('Nom'),
 
+            TextField::new('variantLabel')
+                ->setLabel('')
+                ->onlyOnIndex()
+                ->setTemplatePath('admin/field/variant_badge.html.twig'),
+
+            TextField::new('priceDisplay', 'Prix (€)')
+                ->onlyOnIndex(),
+
             MoneyField::new('priceInEuros')
                 ->setLabel('Prix (€)')
                 ->setCurrency('EUR')
                 ->setStoredAsCents(false)
                 ->setNumDecimals(2)
-                ->setFormTypeOption('required', true),
+                ->onlyOnForms()
+                ->setFormTypeOption('required', false)
+                ->setFormTypeOption('row_attr', ['class' => 'price-wrapper']),
 
             ChoiceField::new('unit')
                 ->setLabel('Unité')
@@ -182,6 +199,16 @@ class ProductCrudController extends AbstractCrudController
                 ->setFormTypeOption('row_attr', ['class' => 'discountText-wrapper']),
 
             BooleanField::new('isDisplayed')->setLabel('Affiché'),
+
+            CollectionField::new('variants')
+                ->setLabel('Variants')
+                ->setEntryType(ProductVariantType::class)
+                ->setEntryIsComplex(true)
+                ->allowAdd()
+                ->allowDelete()
+                ->onlyOnForms()
+                ->setFormTypeOption('by_reference', false)
+                ->setFormTypeOption('row_attr', ['class' => 'variants-wrapper']),
 
             TextField::new('soldOutLabel', 'État')
                 ->onlyOnIndex(),

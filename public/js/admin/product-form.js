@@ -67,4 +67,29 @@ document.addEventListener('DOMContentLoaded', () => {
         checkbox.addEventListener('change', toggleDiscountText);
     }
 
+
+    // When the "variants" switch is ON, show the variants block and hide the
+    // product-level price / stock / promo (which live on each variant instead)
+
+    const hasVariantsRow   = document.querySelector('.has-variants-wrapper');
+    const variantsRow      = document.querySelector('.variants-wrapper');
+    const priceRow         = document.querySelector('.price-wrapper');
+    const stockContainer   = document.querySelector('.stock-container');
+    const discountContainer = document.querySelector('.discount-container');
+
+    if (hasVariantsRow && variantsRow) {
+        const variantsCheckbox = hasVariantsRow.querySelector('input[type="checkbox"]');
+
+        const toggleVariants = () => {
+            const on = variantsCheckbox.checked;
+            variantsRow.style.display = on ? '' : 'none';
+            if (priceRow)          priceRow.style.display          = on ? 'none' : '';
+            if (stockContainer)    stockContainer.style.display    = on ? 'none' : '';
+            if (discountContainer) discountContainer.style.display = on ? 'none' : '';
+        };
+
+        toggleVariants();
+        variantsCheckbox.addEventListener('change', toggleVariants);
+    }
+
 });

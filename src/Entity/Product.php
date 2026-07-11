@@ -24,7 +24,7 @@ class Product
     #[AutoTitleCase]
     private ?string $name = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $price = null;
 
     #[ORM\Column(nullable: false, enumType: ProductUnit::class )]
@@ -57,6 +57,9 @@ class Product
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isDeleted = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $hasVariants = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -74,9 +77,21 @@ class Product
     #[ORM\OneToMany(targetEntity: ProductOrder::class, mappedBy: 'product')]
     private Collection $productOrders;
 
+    /**
+     * @var Collection<int, ProductVariant>
+     */
+    #[ORM\OneToMany(
+        targetEntity: ProductVariant::class,
+        mappedBy: 'product',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    private Collection $variants;
+
     public function __construct()
     {
         $this->productOrders = new ArrayCollection();
+        $this->variants = new ArrayCollection();
         $this->isDisplayed = false;
         $this->hasStock = false;
         $this->limited = false;
@@ -106,7 +121,7 @@ class Product
         return $this->price;
     }
 
-    public function setPrice(int $price): static
+    public function setPrice(?int $price): static
     {
         $this->price = $price;
 
@@ -119,9 +134,9 @@ class Product
         return $this->price !== null ? $this->price / 100 : null;
     }
 
-    public function setPriceInEuros(float $price): static
+    public function setPriceInEuros(?float $price): static
     {
-        $this->price = (int) round($price * 100);
+        $this->price = $price !== null ? (int) round($price * 100) : null;
         return $this;
     }
 
@@ -263,6 +278,18 @@ class Product
         return $this;
     }
 
+    public function hasVariants(): bool
+    {
+        return $this->hasVariants;
+    }
+
+    public function setHasVariants(bool $hasVariants): static
+    {
+        $this->hasVariants = $hasVariants;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
@@ -316,6 +343,35 @@ class Product
         return $this;
     }
 
+    /**
+     * @return Collection<int, ProductVariant>
+     */
+    public function getVariants(): Collection
+    {
+        return $this->variants;
+    }
+
+    public function addVariant(ProductVariant $variant): static
+    {
+        if (!$this->variants->contains($variant)) {
+            $this->variants->add($variant);
+            $variant->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVariant(ProductVariant $variant): static
+    {
+        if ($this->variants->removeElement($variant)) {
+            if ($variant->getProduct() === $this) {
+                $variant->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
 
     public function canDecrementStock(float $quantity): bool
     {
@@ -341,11 +397,51 @@ class Product
             : '✔ Disponible';
     }
 
+    /**
+     * Human-readable price for admin lists: a single price for simple
+     * products, or a min–max range built from the variants' prices.
+     */
+    public function getPriceDisplay(): string
+    {
+        if ($this->hasVariants) {
+            $prices = $this->variants
+                ->map(fn(ProductVariant $v) => $v->getPrice())
+                ->toArray();
+
+            if ($prices === []) {
+                return 'Variantes';
+            }
+
+            $min = min($prices);
+            $max = max($prices);
+
+            return $min === $max
+                ? $this->formatCentsAsEuros($min)
+                : $this->formatCentsAsEuros($min) . ' – ' . $this->formatCentsAsEuros($max);
+        }
+
+        return $this->price !== null ? $this->formatCentsAsEuros($this->price) : '';
+    }
+
+    private function formatCentsAsEuros(int $cents): string
+    {
+        return number_format($cents / 100, 2, ',', ' ') . ' €';
+    }
+
+    /**
+     * Badge value for admin lists: 'Variants' for variant products,
+     * null (no badge) for simple ones.
+     */
+    public function getVariantLabel(): ?string
+    {
+        return $this->hasVariants ? 'Variants' : null;
+    }
+
 
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void
     {
-        if ($this->hasStock && ($this->stock === null || $this->stock <= 0)) {
+        if (!$this->hasVariants && $this->hasStock && ($this->stock === null || $this->stock <= 0)) {
             $context->buildViolation('Le stock est requis ')
                 ->atPath('stock')
                 ->addViolation();
@@ -354,6 +450,18 @@ class Product
         if ($this->unit === ProductUnit::KG && ($this->inter === null || $this->inter <= 0)) {
             $context->buildViolation('L\'intervalle est requis pour un produit vendu au kilo.')
                 ->atPath('inter')
+                ->addViolation();
+        }
+
+        if (!$this->hasVariants && $this->price === null) {
+            $context->buildViolation('Le prix est requis.')
+                ->atPath('priceInEuros')
+                ->addViolation();
+        }
+
+        if ($this->hasVariants && $this->variants->isEmpty()) {
+            $context->buildViolation('Ajoutez au moins un variant.')
+                ->atPath('variants')
                 ->addViolation();
         }
 

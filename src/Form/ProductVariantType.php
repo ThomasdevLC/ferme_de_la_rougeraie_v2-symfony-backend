@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Form;
+
+use App\Entity\ProductVariant;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Positive;
+
+class ProductVariantType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('label', null, [
+                'label' => 'Label',
+                'constraints' => [
+                    new NotBlank(['message' => 'Le label du variant est requis.']),
+                ],
+            ])
+            ->add('priceInEuros', MoneyType::class, [
+                'label' => 'Prix (€)',
+                'currency' => 'EUR',
+                'scale' => 2,
+                'constraints' => [
+                    new NotBlank(['message' => 'Le prix du variant est requis.']),
+                    new Positive(['message' => 'Le prix doit être supérieur à zéro.']),
+                ],
+            ])
+            ->add('stock', NumberType::class, [
+                'label' => 'Stock',
+                'required' => false,
+                'attr' => ['min' => 0],
+            ])
+            ->add('isDisplayed', CheckboxType::class, [
+                'label' => 'Affiché',
+                'required' => false,
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => ProductVariant::class,
+        ]);
+    }
+}
