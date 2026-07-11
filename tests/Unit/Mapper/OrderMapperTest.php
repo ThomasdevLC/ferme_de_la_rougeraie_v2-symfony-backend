@@ -63,6 +63,7 @@ class OrderMapperTest extends TestCase
             ->setPrice(180)
             ->setStock(10)
             ->setIsDisplayed(true);
+        $this->setId($variant, 7);
 
         $order = (new Order())
             ->setTotal(360)
@@ -82,6 +83,7 @@ class OrderMapperTest extends TestCase
         $item = $dto->items[0];
 
         $this->assertSame('Gros', $item->variantLabel);
+        $this->assertSame(7, $item->variantId);
         $this->assertSame(1.8, $item->unitPrice);
         // Variant product exposes no product-level price.
         $this->assertNull($item->product->price);

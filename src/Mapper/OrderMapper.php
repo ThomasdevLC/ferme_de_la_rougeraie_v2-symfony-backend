@@ -65,7 +65,8 @@ class OrderMapper
                 unitPrice: round($unitPriceEuros, 2),
                 lineTotal: round($unitPriceEuros * $qty, 2),
                 availableStock: $availableStock,
-                variantLabel: $variant?->getLabel()
+                variantLabel: $variant?->getLabel(),
+                variantId: $variant?->getId()
             );
 
         }
