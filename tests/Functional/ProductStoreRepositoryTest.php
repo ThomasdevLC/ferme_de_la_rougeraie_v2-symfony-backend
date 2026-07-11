@@ -50,13 +50,14 @@ class ProductStoreRepositoryTest extends KernelTestCase
 
     public function testOnlyDisplayedVariantsAreLoaded(): void
     {
-        $this->createVariantProduct('Variant mixte', [true, true, false]);
+        $product = $this->createVariantProduct('Variant mixte', [true, true, false]);
         $this->em->flush();
+        $productId = $product->getId();
         $this->em->clear();
 
         $loaded = null;
         foreach ($this->repository->findDisplayedAvailableProducts() as $p) {
-            if ($p->getName() === 'Variant mixte') {
+            if ($p->getId() === $productId) {
                 $loaded = $p;
                 break;
             }

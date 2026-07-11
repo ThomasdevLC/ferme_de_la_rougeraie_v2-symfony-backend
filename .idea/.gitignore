@@ -6,3 +6,5 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+# Laravel Idea plugin (machine-specific, not shared)
+/laravel-idea.xml
