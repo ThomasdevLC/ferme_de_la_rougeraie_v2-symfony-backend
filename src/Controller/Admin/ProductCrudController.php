@@ -327,6 +327,7 @@ class ProductCrudController extends AbstractCrudController
         }
 
         $this->handleInterDependingOnUnit($entityInstance);
+        $this->neutralizeSimpleFieldsForVariants($entityInstance);
         $this->optimizeImage($entityInstance);
 
         parent::persistEntity($entityManager, $entityInstance);
@@ -340,6 +341,7 @@ class ProductCrudController extends AbstractCrudController
         }
 
         $this->handleInterDependingOnUnit($entityInstance);
+        $this->neutralizeSimpleFieldsForVariants($entityInstance);
 
         $originalData = $entityManager->getUnitOfWork()->getOriginalEntityData($entityInstance);
         $originalImage = $originalData['image'] ?? null;
@@ -349,6 +351,24 @@ class ProductCrudController extends AbstractCrudController
         }
 
         parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    /**
+     * Enforce the has_variants invariant: a variant product carries no
+     * product-level price/stock/discount (those live on each variant),
+     * so clear them before saving to avoid stale values.
+     */
+    private function neutralizeSimpleFieldsForVariants(Product $product): void
+    {
+        if (!$product->hasVariants()) {
+            return;
+        }
+
+        $product->setPrice(null);
+        $product->setHasStock(false);
+        $product->setStock(null);
+        $product->setDiscount(false);
+        $product->setDiscountText(null);
     }
 
     private function handleInterDependingOnUnit(Product $product): void
