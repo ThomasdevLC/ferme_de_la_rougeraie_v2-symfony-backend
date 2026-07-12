@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Mapper;
 
 use App\Entity\Product;
 use App\Entity\ProductVariant;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Mapper\ProductMapper;
 use App\Utils\Translator\UnitTranslator;
@@ -49,6 +50,38 @@ class ProductMapperTest extends TestCase
         $this->assertCount(2, $dto->variants);
         $this->assertSame(['Petit', 'Moyen'], array_map(fn($v) => $v->label, $dto->variants));
         $this->assertSame(2.0, $dto->variants[0]->price);
+    }
+
+    public function testCategoryIsExposedAsKeyAndLabel(): void
+    {
+        $product = (new Product())
+            ->setName('Tomates')
+            ->setPriceInEuros(3.5)
+            ->setUnit(ProductUnit::KG)
+            ->setInter(0.5)
+            ->setImage('tomates.jpg')
+            ->setCategory(ProductCategory::VEGETABLE);
+        $this->setId($product, 12);
+
+        $dto = ProductMapper::toDto($product, new UnitTranslator());
+
+        $this->assertNotNull($dto->category);
+        $this->assertSame('VEGETABLE', $dto->category->key);
+        $this->assertSame('Légumes', $dto->category->label);
+    }
+
+    public function testCategoryIsNullWhenNotSet(): void
+    {
+        $product = (new Product())
+            ->setName('Aillet')
+            ->setPriceInEuros(2.2)
+            ->setUnit(ProductUnit::BUNDLE)
+            ->setImage('aillet.jpg');
+        $this->setId($product, 65);
+
+        $dto = ProductMapper::toDto($product, new UnitTranslator());
+
+        $this->assertNull($dto->category);
     }
 
     private function makeVariant(int $id, string $label, float $priceEuros, bool $displayed): ProductVariant

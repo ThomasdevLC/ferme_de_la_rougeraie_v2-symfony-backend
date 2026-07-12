@@ -2,10 +2,12 @@
 
 namespace App\Mapper;
 
+use App\Dto\Product\ProductCategoryDto;
 use App\Dto\Product\ProductDto;
 use App\Dto\Product\ProductVariantDto;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
+use App\Enum\ProductCategory;
 use App\Utils\Translator\UnitTranslator;
 
 class ProductMapper
@@ -33,7 +35,15 @@ class ProductMapper
             inter: $product->getInter(),
             hasVariants: $product->hasVariants(),
             variants: $variants,
+            category: self::categoryToDto($product->getCategory()),
         );
+    }
+
+    private static function categoryToDto(?ProductCategory $category): ?ProductCategoryDto
+    {
+        return $category !== null
+            ? new ProductCategoryDto($category->value, $category->label())
+            : null;
     }
 
     private static function variantToDto(ProductVariant $variant): ProductVariantDto

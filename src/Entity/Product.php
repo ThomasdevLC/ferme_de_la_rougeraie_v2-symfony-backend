@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Attribute\AutoTitleCase;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Repository\Admin\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,6 +30,9 @@ class Product
 
     #[ORM\Column(nullable: false, enumType: ProductUnit::class )]
     private ?ProductUnit $unit = null;
+
+    #[ORM\Column(nullable: true, enumType: ProductCategory::class)]
+    private ?ProductCategory $category = null;
 
     #[ORM\Column(nullable: true)]
     private ?float $inter = null;
@@ -152,6 +156,18 @@ class Product
         if ($unit !== ProductUnit::KG) {
             $this->inter = null;
         }
+
+        return $this;
+    }
+
+    public function getCategory(): ?ProductCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?ProductCategory $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }
