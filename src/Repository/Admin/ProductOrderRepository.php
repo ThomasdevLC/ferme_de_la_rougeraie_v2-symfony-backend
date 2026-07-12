@@ -15,46 +15,29 @@ class ProductOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * Returns a distinct list of product IDs for orders
-     *  that are not deleted and match the given pickup day.
+     * Quantities ordered by each user for a pickup day, aggregated by
+     * (product, variant) so variant lines stay distinct. Non-deleted,
+     * not-yet-done orders only.
      *
-     * @return int[]
+     * @return array<array{userId: int|string, productId: int|string, variantId: int|string|null, variantLabel: ?string, totalQuantity: string}>
      */
-    public function getProductIdsByPickupDay(int  $pickupDay): array
-    {
-        $rows = $this->createQueryBuilder('po')
-            ->select('DISTINCT IDENTITY(po.product) AS productId')
-            ->innerJoin('po.order', 'o')
-            ->andWhere('o.isDeleted = false')
-            ->andWhere('o.done = false')
-            ->andWhere('o.pickupDay  = :pickupDay')
-            ->setParameter('pickupDay', $pickupDay)
-            ->getQuery()
-            ->getArrayResult();
-
-        return array_map(fn(array $r) => (int) $r['productId'], $rows);
-    }
-
-    /**
-     * Returns the calculated product quantities ordered by each user
-     * for a specific pickup day  for non-deleted orders.
-     */
-    public function getUserProductQuantitiesByPickupDay(int $pickupDay): array
-
-
+    public function getUserVariantQuantitiesByPickupDay(int $pickupDay): array
     {
         return $this->createQueryBuilder('po')
             ->select(
-                'IDENTITY(o.user)    AS userId',
-                'IDENTITY(po.product) AS productId',
-                'SUM(po.quantity)     AS totalQuantity'
+                'IDENTITY(o.user)            AS userId',
+                'IDENTITY(po.product)        AS productId',
+                'IDENTITY(po.productVariant) AS variantId',
+                'v.label                     AS variantLabel',
+                'SUM(po.quantity)            AS totalQuantity'
             )
             ->innerJoin('po.order', 'o')
+            ->leftJoin('po.productVariant', 'v')
             ->andWhere('o.isDeleted = false')
             ->andWhere('o.done = false')
             ->andWhere('o.pickupDay  = :pickupDay')
             ->setParameter('pickupDay', $pickupDay)
-            ->groupBy('userId', 'productId')
+            ->groupBy('userId', 'productId', 'variantId', 'variantLabel')
             ->getQuery()
             ->getArrayResult();
     }

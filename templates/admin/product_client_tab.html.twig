@@ -132,14 +132,14 @@
             </thead>
 
             <tbody>
-                {% for product in products %}
+                {% for line in lines %}
                     <tr>
                         <td>
-                            {{ product.name }}
-                            <small class="text-muted ms-2">({{ product.unit }})</small>
+                            {{ line.productName }}{% if line.variantLabel %} - {{ line.variantLabel }}{% endif %}
+                            <small class="text-muted ms-2">({{ line.unit }})</small>
                         </td>
                         {% for user in users %}
-                            {% set qty = quantitiesTab[user.id][product.id] ?? '-' %}
+                            {% set qty = quantitiesTab[user.id][line.key] ?? '-' %}
                             <td class="text-center">
                                 {{ qty }}
                             </td>
@@ -168,11 +168,11 @@
                     </thead>
 
                     <tbody>
-                        {% for product in products %}
+                        {% for line in lines %}
                             <tr>
-                                <td>{{ product.name }} ({{ product.unit }})</td>
+                                <td>{{ line.productName }}{% if line.variantLabel %} - {{ line.variantLabel }}{% endif %} ({{ line.unit }})</td>
                                 {% for user in userGroup %}
-                                    <td>{{ quantitiesTab[user.id][product.id] ?? '-' }}</td>
+                                    <td>{{ quantitiesTab[user.id][line.key] ?? '-' }}</td>
                                 {% endfor %}
                             </tr>
                         {% endfor %}

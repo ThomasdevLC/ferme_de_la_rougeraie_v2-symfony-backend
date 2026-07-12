@@ -37,11 +37,11 @@ class ProductClientTabController extends AbstractController
             $weekday = 2;
         }
 
-        [$products, $users, $quantitiesTab] = $service
+        [$lines, $users, $quantitiesTab] = $service
             ->getProductClientQuantitiesByWeekday($weekday);
 
         return $this->render('admin/product_client_tab.html.twig', [
-            'products'          => $products,
+            'lines'             => $lines,
             'users'             => $users,
             'quantitiesTab'     => $quantitiesTab,
             'selectedPickupDay' => $weekday,
