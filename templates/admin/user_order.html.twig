@@ -35,7 +35,7 @@
                 {% set lineTotal = unit * item.quantity %}
                 {% set total = total + lineTotal %}
                 <tr>
-                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.name }}{% if item.productVariant %} - {{ item.productVariant.label }}{% endif %}</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ unit|number_format(2, ',', ' ') }}</td>
                     <td>{{ lineTotal|number_format(2, ',', ' ') }}</td>
