@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Product;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Form\ProductVariantType;
 use App\Service\Admin\ProductService;
@@ -161,6 +162,14 @@ class ProductCrudController extends AbstractCrudController
                     };
                 }),
 
+            ChoiceField::new('category')
+                ->setLabel('Catégorie')
+                ->setChoices($this->categoryChoices())
+                ->setRequired(false)
+                ->setFormTypeOption('placeholder', '— Aucune —')
+                ->formatValue(
+                    static fn ($value): ?string => $value instanceof ProductCategory ? $value->label() : null
+                ),
 
             NumberField::new('inter')
                 ->onlyOnForms()
@@ -260,7 +269,28 @@ class ProductCrudController extends AbstractCrudController
                         'Affiché' => true,
                         'Non affiché' => false,
                     ])
+            )
+            ->add(
+                ChoiceFilter::new('category')
+                    ->setLabel('Catégorie')
+                    ->setChoices($this->categoryChoices())
             );
+    }
+
+    /**
+     * Category choices for the admin (label => enum), built from the enum so
+     * the canonical declaration order and French labels stay in one place.
+     *
+     * @return array<string, ProductCategory>
+     */
+    private function categoryChoices(): array
+    {
+        $choices = [];
+        foreach (ProductCategory::cases() as $category) {
+            $choices[$category->label()] = $category;
+        }
+
+        return $choices;
     }
 
     public function createEntity(string $entityFqcn): Product
