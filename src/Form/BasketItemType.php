@@ -29,7 +29,13 @@ class BasketItemType extends AbstractType
                     ->where('p.isDeleted = false')
                     ->andWhere('p.isBasket = false')
                     ->orderBy('p.name', 'ASC'),
+                // Group the dropdown by product category (Légumes, Fruits...);
+                // uncategorised products land in a trailing "Sans catégorie".
+                'group_by' => static fn (Product $product): string => $product->getCategory()?->label() ?? 'Sans catégorie',
                 'placeholder' => '— Choisir un produit —',
+                // Turn the native <select> into EasyAdmin's tom-select
+                // autocomplete (client-side search, no server round-trip).
+                'attr' => ['data-ea-widget' => 'ea-autocomplete'],
                 'constraints' => [
                     new NotNull(['message' => 'Sélectionnez un produit.']),
                 ],

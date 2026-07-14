@@ -2,9 +2,11 @@
 
 namespace App\Mapper;
 
+use App\Dto\Product\BasketItemDto;
 use App\Dto\Product\ProductCategoryDto;
 use App\Dto\Product\ProductDto;
 use App\Dto\Product\ProductVariantDto;
+use App\Entity\BasketItem;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Enum\ProductCategory;
@@ -35,7 +37,36 @@ class ProductMapper
             inter: $product->getInter(),
             hasVariants: $product->hasVariants(),
             variants: $variants,
+            isBasket: $product->isBasket(),
+            basketItems: self::basketItemsToDto($product),
             category: self::categoryToDto($product->getCategory()),
+        );
+    }
+
+    /**
+     * Composition lines for a basket (empty for a regular product),
+     * ordered by their display position.
+     *
+     * @return BasketItemDto[]
+     */
+    private static function basketItemsToDto(Product $product): array
+    {
+        if (!$product->isBasket()) {
+            return [];
+        }
+
+        $items = $product->getBasketItems()->toArray();
+        usort(
+            $items,
+            static fn (BasketItem $a, BasketItem $b): int => $a->getPosition() <=> $b->getPosition()
+        );
+
+        return array_map(
+            static fn (BasketItem $item): BasketItemDto => new BasketItemDto(
+                name: $item->getProduct()->getName(),
+                quantity: $item->getQuantity(),
+            ),
+            $items
         );
     }
 

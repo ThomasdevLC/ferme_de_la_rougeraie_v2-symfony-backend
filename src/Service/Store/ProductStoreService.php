@@ -33,10 +33,10 @@ class ProductStoreService
     }
 
     /**
-     * Order products by the canonical category order (the ProductCategory
-     * declaration order); products without a category come last. usort is
-     * stable since PHP 8, so the repository order is preserved within a
-     * category.
+     * Order the grid: baskets first, then products by the canonical category
+     * order (the ProductCategory declaration order); products without a
+     * category come last. usort is stable since PHP 8, so the repository
+     * order is preserved within a rank.
      *
      * @param Product[] $products
      */
@@ -49,10 +49,27 @@ class ProductStoreService
         $unrankedLast = count($rankByKey);
 
         usort($products, static function (Product $a, Product $b) use ($rankByKey, $unrankedLast): int {
-            $rankA = $a->getCategory() !== null ? $rankByKey[$a->getCategory()->value] : $unrankedLast;
-            $rankB = $b->getCategory() !== null ? $rankByKey[$b->getCategory()->value] : $unrankedLast;
+            $rankA = self::gridRank($a, $rankByKey, $unrankedLast);
+            $rankB = self::gridRank($b, $rankByKey, $unrankedLast);
 
             return $rankA <=> $rankB;
         });
+    }
+
+    /**
+     * Baskets rank before everything (-1); other products rank by their
+     * category, uncategorised ones last.
+     *
+     * @param array<string, int> $rankByKey
+     */
+    private static function gridRank(Product $product, array $rankByKey, int $unrankedLast): int
+    {
+        if ($product->isBasket()) {
+            return -1;
+        }
+
+        return $product->getCategory() !== null
+            ? $rankByKey[$product->getCategory()->value]
+            : $unrankedLast;
     }
 }
