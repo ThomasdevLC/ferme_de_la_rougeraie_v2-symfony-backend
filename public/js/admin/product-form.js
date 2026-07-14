@@ -2,19 +2,24 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM entièrement chargé pour Tomselected');
 
 
-    const tsControl = document.querySelector('.ts-control');
     const interWrapper = document.querySelector('.inter-wrapper');
-    const selectElement = document.querySelector('select[name$="[unit]"]');
 
-    // Hide the "inter" field if the "unit"  is not kilo
+    // Show the "inter" (Intervalle) field only when the selected unit is "Kilo".
+    // Unité is  rendered as pills (radio buttons)
+    const unitRadios = document.querySelectorAll('input[name$="[unit]"]');
+
+    function selectedUnitLabel() {
+        const checked = document.querySelector('input[name$="[unit]"]:checked');
+        return checked?.closest('.form-check')?.querySelector('label')?.textContent.trim() ?? '';
+    }
 
     function toggleInterField() {
-        const text = selectElement?.options[selectElement.selectedIndex]?.text ?? '';
-        interWrapper.style.display = (text === 'Kilo') ? 'block' : 'none';
+        if (!interWrapper) return;
+        interWrapper.style.display = (selectedUnitLabel() === 'Kilo') ? 'block' : 'none';
     }
-    if (tsControl && selectElement) {
-        tsControl.addEventListener('click', () => setTimeout(toggleInterField, 100));
-        selectElement.addEventListener('change', toggleInterField);
+
+    if (interWrapper && unitRadios.length) {
+        unitRadios.forEach((radio) => radio.addEventListener('change', toggleInterField));
         toggleInterField();
     }
 
@@ -41,8 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleStock();
     checkbox.addEventListener('change', toggleStock);
 
-
-    // Hide the "discount text" field if the "discount" switch is not checked
 
     const discountRow     = document.querySelector('.discount-wrapper');
     const discountTextRow = document.querySelector('.discountText-wrapper');
@@ -91,5 +94,93 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleVariants();
         variantsCheckbox.addEventListener('change', toggleVariants);
     }
+
+
+    // Live preview: show the freshly selected image right next to the file field
+
+    const imageInput = document.querySelector('.image-field input[type="file"]');
+    const fileUpload = imageInput?.closest('.ea-fileupload');
+
+    if (imageInput && fileUpload) {
+        const preview = document.createElement('div');
+        preview.classList.add('image-live-preview');
+        const previewImg = document.createElement('img');
+        preview.appendChild(previewImg);
+
+        const previewHost = document.querySelector('.identity-card .form-fieldset-body') || fileUpload.parentNode;
+        previewHost.appendChild(preview);
+
+        // Edit mode: show the already-saved image (its filename is the file label)
+        const currentName = fileUpload.querySelector('.custom-file-label')?.textContent.trim() ?? '';
+        if (/\.(jpe?g|png|webp|gif|avif|bmp|svg)$/i.test(currentName)) {
+            previewImg.src = '/uploads/images/' + encodeURIComponent(currentName);
+            preview.classList.add('is-visible');
+        }
+
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files?.[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    preview.classList.add('is-visible');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImg.removeAttribute('src');
+                preview.classList.remove('is-visible');
+            }
+        });
+    }
+
+
+
+
+    const variantsWrapper = document.querySelector('.variants-wrapper');
+
+    const variantItems = () =>
+        variantsWrapper ? [...variantsWrapper.querySelectorAll('.field-collection-item')] : [];
+
+    const setVariantTitle = (item) => {
+        const header = item.querySelector('.accordion-button');
+        if (!header) return;
+
+        const labelInput = item.querySelector('input[name$="[label]"]');
+        const index = variantItems().indexOf(item);
+        const text = labelInput?.value.trim() || ('Variant ' + (index + 1));
+
+        let title = header.querySelector('.variant-title-js');
+        if (!title) {
+            [...header.childNodes].forEach((node) => {
+                if (node.nodeType === Node.TEXT_NODE) node.remove();
+            });
+            title = document.createElement('span');
+            title.classList.add('variant-title-js');
+            header.appendChild(title);
+        }
+        title.textContent = text;
+    };
+
+    variantItems().forEach(setVariantTitle);
+
+    document.addEventListener('click', (event) => {
+        if (event.target.closest('.field-collection-add-button')) {
+            setTimeout(() => {
+                const items = variantItems();
+                if (items.length) {
+                    setVariantTitle(items[items.length - 1]);
+                }
+            }, 0);
+            return;
+        }
+
+        const validate = event.target.closest('.variant-validate-button');
+        if (validate) {
+            const item = validate.closest('.field-collection-item');
+            if (item) {
+                setVariantTitle(item);
+            }
+        }
+    });
 
 });

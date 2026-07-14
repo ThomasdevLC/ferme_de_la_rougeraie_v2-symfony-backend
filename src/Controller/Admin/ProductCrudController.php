@@ -19,6 +19,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
@@ -71,6 +72,7 @@ class ProductCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
+            ->addFormTheme('admin/form_theme.html.twig')
             ->setEntityLabelInSingular('🥕 Produit')
             ->setEntityLabelInPlural('🥕 Produits')
             ->setPageTitle(Crud::PAGE_INDEX, '🥕 Produits')
@@ -92,10 +94,14 @@ class ProductCrudController extends AbstractCrudController
                 ->hideOnForm()
                 ->hideOnIndex(),
 
-            BooleanField::new('hasVariants')
-                ->setLabel('Variants')
+            // ── Carte : Identité ──────────────────────────────────────────
+            FormField::addFieldset()
                 ->onlyOnForms()
-                ->setFormTypeOption('row_attr', ['class' => 'has-variants-wrapper']),
+                ->setCssClass('fdlr-card identity-card'),
+
+            BooleanField::new('isDisplayed')->setLabel('Affiché'),
+
+            TextField::new('name')->setLabel('Nom'),
 
             ImageField::new('image')
                 ->setBasePath('/uploads/images')
@@ -113,10 +119,9 @@ class ProductCrudController extends AbstractCrudController
                 )
                 ->setFormTypeOptions([
                     'required' => Crud::PAGE_NEW === $pageName,
+                    'row_attr' => ['class' => 'image-field'],
                 ])
                 ->addCssClass('avatar-image'),
-
-            TextField::new('name')->setLabel('Nom'),
 
             TextField::new('variantLabel')
                 ->setLabel('')
@@ -126,14 +131,15 @@ class ProductCrudController extends AbstractCrudController
             TextField::new('priceDisplay', 'Prix (€)')
                 ->onlyOnIndex(),
 
-            MoneyField::new('priceInEuros')
-                ->setLabel('Prix (€)')
-                ->setCurrency('EUR')
-                ->setStoredAsCents(false)
-                ->setNumDecimals(2)
-                ->onlyOnForms()
-                ->setFormTypeOption('required', false)
-                ->setFormTypeOption('row_attr', ['class' => 'price-wrapper']),
+            ChoiceField::new('category')
+                ->setLabel('Catégorie')
+                ->setChoices($this->categoryChoices())
+                ->setRequired(false)
+                ->renderExpanded()
+                ->setFormTypeOption('row_attr', ['class' => 'choice-pills'])
+                ->formatValue(
+                    static fn ($value): ?string => $value instanceof ProductCategory ? $value->label() : null
+                ),
 
             ChoiceField::new('unit')
                 ->setLabel('Unité')
@@ -151,6 +157,8 @@ class ProductCrudController extends AbstractCrudController
                     ProductUnit::LITER->value => 'info',
                     ProductUnit::KG->value => 'secondary',
                 ])
+                ->renderExpanded()
+                ->setFormTypeOption('row_attr', ['class' => 'choice-pills'])
                 ->formatValue(function ($value, $entity) {
                     return match ($value?->value ?? null) {
                         'PIECE' => 'Pièce',
@@ -162,15 +170,6 @@ class ProductCrudController extends AbstractCrudController
                     };
                 }),
 
-            ChoiceField::new('category')
-                ->setLabel('Catégorie')
-                ->setChoices($this->categoryChoices())
-                ->setRequired(false)
-                ->setFormTypeOption('placeholder', '— Aucune —')
-                ->formatValue(
-                    static fn ($value): ?string => $value instanceof ProductCategory ? $value->label() : null
-                ),
-
             NumberField::new('inter')
                 ->onlyOnForms()
                 ->setLabel('Intervalle (en kg)')
@@ -180,6 +179,38 @@ class ProductCrudController extends AbstractCrudController
                 ])
                 ->setFormTypeOption('html5', true)
                 ->setFormTypeOption('row_attr', ['class' => 'inter-wrapper']),
+
+            FormField::addFieldset()
+                ->onlyOnForms()
+                ->setCssClass('fdlr-card'),
+
+            BooleanField::new('hasVariants')
+                ->setLabel('Variants')
+                ->onlyOnForms()
+                ->setFormTypeOption('row_attr', ['class' => 'has-variants-wrapper']),
+
+            CollectionField::new('variants')
+                ->setLabel(false)
+                ->setEntryType(ProductVariantType::class)
+                ->setEntryIsComplex(true)
+                ->allowAdd()
+                ->allowDelete()
+                ->onlyOnForms()
+                ->setFormTypeOption('by_reference', false)
+                ->setFormTypeOption('row_attr', ['class' => 'variants-wrapper']),
+
+            FormField::addFieldset()
+                ->onlyOnForms()
+                ->setCssClass('fdlr-card'),
+
+            MoneyField::new('priceInEuros')
+                ->setLabel('Prix (€)')
+                ->setCurrency('EUR')
+                ->setStoredAsCents(false)
+                ->setNumDecimals(2)
+                ->onlyOnForms()
+                ->setFormTypeOption('required', false)
+                ->setFormTypeOption('row_attr', ['class' => 'price-wrapper']),
 
             BooleanField::new('hasStock')
                 ->hideOnIndex()
@@ -193,8 +224,6 @@ class ProductCrudController extends AbstractCrudController
                 ])
                 ->setFormTypeOption('row_attr', ['class' => 'stock-wrapper']),
 
-            BooleanField::new('limited')->setLabel('Qté Limitée'),
-
             BooleanField::new('discount')
                 ->hideOnIndex()
                 ->setLabel('Promo')
@@ -207,17 +236,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setLabel('Texte Promo')
                 ->setFormTypeOption('row_attr', ['class' => 'discountText-wrapper']),
 
-            BooleanField::new('isDisplayed')->setLabel('Affiché'),
-
-            CollectionField::new('variants')
-                ->setLabel('Variants')
-                ->setEntryType(ProductVariantType::class)
-                ->setEntryIsComplex(true)
-                ->allowAdd()
-                ->allowDelete()
-                ->onlyOnForms()
-                ->setFormTypeOption('by_reference', false)
-                ->setFormTypeOption('row_attr', ['class' => 'variants-wrapper']),
+            BooleanField::new('limited')->setLabel('Qté Limitée'),
 
             TextField::new('soldOutLabel', 'État')
                 ->onlyOnIndex(),
