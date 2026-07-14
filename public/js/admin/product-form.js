@@ -139,12 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Collapsible collection items whose accordion header shows a live title.
     // Same treatment for the product variants and the basket composition; each
     // collection just computes its title from its own fields.
+    // Each titleFor returns an ordered list of {text, className?} segments so
+    // parts of the title (e.g. the unit) can be styled independently.
     const titleConfigs = [
         {
             wrapper: document.querySelector('.variants-wrapper'),
             titleFor: (item, index) => {
                 const labelInput = item.querySelector('input[name$="[label]"]');
-                return labelInput?.value.trim() || ('Variant ' + (index + 1));
+                return [{ text: labelInput?.value.trim() || ('Variant ' + (index + 1)) }];
             },
         },
         {
@@ -153,10 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const select = item.querySelector('select[name$="[product]"]');
                 const chosen = select?.selectedOptions?.[0];
                 const name = (chosen && chosen.value) ? chosen.text.trim() : '';
-                if (!name) return 'Produit ' + (index + 1);
+                if (!name) return [{ text: 'Produit ' + (index + 1) }];
+
+                const segments = [{ text: name }];
+
+                const unit = chosen.dataset.unit?.trim();
+                if (unit) segments.push({ text: unit, className: 'composition-unit-js' });
 
                 const qty = item.querySelector('input[name$="[quantity]"]')?.value.trim();
-                return qty ? `${name} × ${qty}` : name;
+                if (qty) segments.push({ text: '× ' + qty });
+
+                return segments;
             },
         },
     ].filter((config) => config.wrapper);
@@ -168,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!header) return;
 
         const index = itemsOf(config.wrapper).indexOf(item);
-        const text = config.titleFor(item, index);
+        const segments = config.titleFor(item, index);
 
         let title = header.querySelector('.collection-title-js');
         if (!title) {
@@ -179,7 +188,14 @@ document.addEventListener('DOMContentLoaded', () => {
             title.classList.add('collection-title-js');
             header.appendChild(title);
         }
-        title.textContent = text;
+
+        title.textContent = '';
+        segments.forEach((segment, i) => {
+            const span = document.createElement('span');
+            span.textContent = (i > 0 ? ' ' : '') + segment.text;
+            if (segment.className) span.classList.add(segment.className);
+            title.appendChild(span);
+        });
     };
 
     titleConfigs.forEach((config) => {
