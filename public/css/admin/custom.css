@@ -316,6 +316,13 @@
     box-shadow: none;
 }
 
+/* Unit shown next to the component name in the collapsed row title. */
+.basket-items-wrapper .composition-unit-js {
+    font-size: .82em;
+    font-weight: 400;
+    opacity: .6;
+}
+
 [data-bs-theme="dark"] .ea-new-Product,
 [data-bs-theme="dark"] .ea-edit-Product,
 .ea-new-Product[data-bs-theme="dark"],

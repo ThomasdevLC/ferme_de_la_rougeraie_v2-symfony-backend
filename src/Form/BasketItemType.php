@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\BasketItem;
 use App\Entity\Product;
 use App\Repository\Admin\ProductRepository;
+use App\Utils\Translator\UnitTranslator;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -15,6 +16,10 @@ use Symfony\Component\Validator\Constraints\Positive;
 
 class BasketItemType extends AbstractType
 {
+    public function __construct(
+        private UnitTranslator $unitTranslator,
+    ) {}
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -32,6 +37,13 @@ class BasketItemType extends AbstractType
                 // Group the dropdown by product category (Légumes, Fruits...);
                 // uncategorised products land in a trailing "Sans catégorie".
                 'group_by' => static fn (Product $product): string => $product->getCategory()?->label() ?? 'Sans catégorie',
+                // Expose each product's unit on its <option> so the JS can show
+                // it next to the name in the collapsed row title.
+                'choice_attr' => fn (Product $product): array => [
+                    'data-unit' => $product->getUnit() !== null
+                        ? $this->unitTranslator->translate($product->getUnit())
+                        : '',
+                ],
                 'placeholder' => '— Choisir un produit —',
                 // Turn the native <select> into EasyAdmin's tom-select
                 // autocomplete (client-side search, no server round-trip).
