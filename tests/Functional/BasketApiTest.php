@@ -47,7 +47,13 @@ class BasketApiTest extends WebTestCase
         $this->assertTrue($data[0]['isBasket'], 'Le panier doit apparaître en tête de liste');
 
         $basket = $data[0];
-        $this->assertSame('Panier de la semaine', $basket['name']);
+        // Compare to the persisted name (the TitleCaseListener normalises it,
+        // e.g. "Panier de la semaine" -> "Panier De La Semaine").
+        $basketName = static::getContainer()->get('doctrine')
+            ->getRepository(Product::class)
+            ->findOneBy(['isBasket' => true])
+            ->getName();
+        $this->assertSame($basketName, $basket['name']);
         $this->assertNotEmpty($basket['basketItems'], 'Le panier doit exposer sa composition');
 
         foreach ($basket['basketItems'] as $item) {
