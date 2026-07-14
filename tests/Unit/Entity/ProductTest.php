@@ -2,6 +2,7 @@
 
 namespace App\Tests\Unit\Entity;
 
+use App\Entity\BasketItem;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\ProductOrder;
@@ -143,5 +144,39 @@ class ProductTest extends TestCase
         // Vérifier la suppression
         $product->removeProductOrder($productOrder);
         $this->assertCount(0, $product->getProductOrders());
+    }
+
+    public function testIsBasketDefaultsToFalse()
+    {
+        $product = new Product();
+        $this->assertFalse($product->isBasket());
+    }
+
+    public function testSetAndIsBasket()
+    {
+        $product = new Product();
+        $product->setIsBasket(true);
+        $this->assertTrue($product->isBasket());
+
+        $product->setIsBasket(false);
+        $this->assertFalse($product->isBasket());
+    }
+
+    public function testAddAndRemoveBasketItem()
+    {
+        $basket = new Product();
+        $basketItem = new BasketItem();
+
+        $this->assertCount(0, $basket->getBasketItems());
+
+        $basket->addBasketItem($basketItem);
+        $this->assertCount(1, $basket->getBasketItems());
+        $this->assertTrue($basket->getBasketItems()->contains($basketItem));
+        // addBasketItem wires the owning side back to the basket.
+        $this->assertSame($basket, $basketItem->getBasket());
+
+        $basket->removeBasketItem($basketItem);
+        $this->assertCount(0, $basket->getBasketItems());
+        $this->assertNull($basketItem->getBasket());
     }
 }
