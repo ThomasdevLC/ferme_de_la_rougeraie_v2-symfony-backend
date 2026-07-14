@@ -249,19 +249,23 @@
     display: block;
 }
 
-.variants-wrapper .collection-empty {
+.variants-wrapper .collection-empty,
+.basket-items-wrapper .collection-empty {
     display: none;
 }
 
-.variants-wrapper .field-collection-item {
+.variants-wrapper .field-collection-item,
+.basket-items-wrapper .field-collection-item {
     margin-block-end: 1rem;
 }
 
-.variants-wrapper .field-collection-add-button {
+.variants-wrapper .field-collection-add-button,
+.basket-items-wrapper .field-collection-add-button {
     margin-block-start: 1rem;
 }
 
-.variants-wrapper .variant-actions-row {
+.variants-wrapper .variant-actions-row,
+.basket-items-wrapper .variant-actions-row {
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -270,7 +274,9 @@
 }
 
 .variants-wrapper .field-collection-delete-button.variant-delete-button,
-.variants-wrapper .variant-validate-button {
+.variants-wrapper .variant-validate-button,
+.basket-items-wrapper .field-collection-delete-button.variant-delete-button,
+.basket-items-wrapper .variant-validate-button {
     position: static;
     inset: auto;
     display: inline-flex;
@@ -280,28 +286,41 @@
 }
 
 .variants-wrapper .variant-delete-label,
-.variants-wrapper .variant-validate-label {
+.variants-wrapper .variant-validate-label,
+.basket-items-wrapper .variant-delete-label,
+.basket-items-wrapper .variant-validate-label {
     font-size: .85rem;
     font-weight: 500;
 }
 
-.variants-wrapper .variant-validate-button {
+.variants-wrapper .variant-validate-button,
+.basket-items-wrapper .variant-validate-button {
     color: var(--button-primary-bg);
 }
 
-.variants-wrapper .form-collection-item-collapse-marker {
+.variants-wrapper .form-collection-item-collapse-marker,
+.basket-items-wrapper .form-collection-item-collapse-marker {
     display: none;
 }
 
-.variants-wrapper .accordion-button:not(.collapsed) {
+.variants-wrapper .accordion-button:not(.collapsed),
+.basket-items-wrapper .accordion-button:not(.collapsed) {
     background-color: transparent;
     color: inherit;
     box-shadow: none;
 }
 
-.variants-wrapper .accordion-button:focus {
+.variants-wrapper .accordion-button:focus,
+.basket-items-wrapper .accordion-button:focus {
     border-color: transparent;
     box-shadow: none;
+}
+
+/* Unit shown next to the component name in the collapsed row title. */
+.basket-items-wrapper .composition-unit-js {
+    font-size: .82em;
+    font-weight: 400;
+    opacity: .6;
 }
 
 [data-bs-theme="dark"] .ea-new-Product,

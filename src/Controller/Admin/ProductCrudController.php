@@ -365,7 +365,9 @@ class ProductCrudController extends AbstractCrudController
     {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
-        return $qb->andWhere('entity.isDeleted = false');
+        return $qb
+            ->andWhere('entity.isDeleted = false')
+            ->andWhere('entity.isBasket = false');
     }
 
 

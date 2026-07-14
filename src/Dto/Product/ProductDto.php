@@ -6,6 +6,7 @@ readonly class ProductDto
 {
     /**
      * @param ProductVariantDto[] $variants
+     * @param BasketItemDto[]     $basketItems
      */
     public function __construct(
         public int      $id,
@@ -21,6 +22,8 @@ readonly class ProductDto
         public ?float   $inter,
         public bool     $hasVariants,
         public array    $variants,
+        public bool     $isBasket = false,
+        public array    $basketItems = [],
         public ?ProductCategoryDto $category = null,
     )
     {}

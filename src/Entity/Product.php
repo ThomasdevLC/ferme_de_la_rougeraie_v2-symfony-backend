@@ -64,6 +64,9 @@ class Product
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $hasVariants = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isBasket = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -92,10 +95,22 @@ class Product
     )]
     private Collection $variants;
 
+    /**
+     * @var Collection<int, BasketItem>
+     */
+    #[ORM\OneToMany(
+        targetEntity: BasketItem::class,
+        mappedBy: 'basket',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
+    private Collection $basketItems;
+
     public function __construct()
     {
         $this->productOrders = new ArrayCollection();
         $this->variants = new ArrayCollection();
+        $this->basketItems = new ArrayCollection();
         $this->isDisplayed = false;
         $this->hasStock = false;
         $this->limited = false;
@@ -306,6 +321,18 @@ class Product
         return $this;
     }
 
+    public function isBasket(): bool
+    {
+        return $this->isBasket;
+    }
+
+    public function setIsBasket(bool $isBasket): static
+    {
+        $this->isBasket = $isBasket;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
@@ -382,6 +409,35 @@ class Product
         if ($this->variants->removeElement($variant)) {
             if ($variant->getProduct() === $this) {
                 $variant->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, BasketItem>
+     */
+    public function getBasketItems(): Collection
+    {
+        return $this->basketItems;
+    }
+
+    public function addBasketItem(BasketItem $basketItem): static
+    {
+        if (!$this->basketItems->contains($basketItem)) {
+            $this->basketItems->add($basketItem);
+            $basketItem->setBasket($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBasketItem(BasketItem $basketItem): static
+    {
+        if ($this->basketItems->removeElement($basketItem)) {
+            if ($basketItem->getBasket() === $this) {
+                $basketItem->setBasket(null);
             }
         }
 
@@ -478,6 +534,12 @@ class Product
         if ($this->hasVariants && $this->variants->isEmpty()) {
             $context->buildViolation('Ajoutez au moins un variant.')
                 ->atPath('variants')
+                ->addViolation();
+        }
+
+        if ($this->isBasket && $this->basketItems->isEmpty()) {
+            $context->buildViolation('Ajoutez au moins un produit à la composition du panier.')
+                ->atPath('basketItems')
                 ->addViolation();
         }
 
