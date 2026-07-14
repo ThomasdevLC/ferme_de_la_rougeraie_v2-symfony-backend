@@ -537,5 +537,11 @@ class Product
                 ->addViolation();
         }
 
+        if ($this->isBasket && $this->basketItems->isEmpty()) {
+            $context->buildViolation('Ajoutez au moins un produit à la composition du panier.')
+                ->atPath('basketItems')
+                ->addViolation();
+        }
+
     }
 }
