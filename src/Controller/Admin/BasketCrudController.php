@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Product;
-use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Form\BasketItemType;
 use App\Service\Image\ProductImageProcessor;
@@ -19,7 +18,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
@@ -45,6 +43,7 @@ class BasketCrudController extends AbstractCrudController
     public function configureAssets(Assets $assets): Assets
     {
         return $assets
+            ->addJsFile('js/admin/product-form.js')
             ->addCssFile('css/admin/custom.css');
     }
 
@@ -123,16 +122,6 @@ class BasketCrudController extends AbstractCrudController
 
             TextField::new('priceDisplay', 'Prix (€)')->onlyOnIndex(),
 
-            ChoiceField::new('category')
-                ->setLabel('Catégorie')
-                ->setChoices($this->categoryChoices())
-                ->setRequired(false)
-                ->renderExpanded()
-                ->setFormTypeOption('row_attr', ['class' => 'choice-pills'])
-                ->formatValue(
-                    static fn ($value): ?string => $value instanceof ProductCategory ? $value->label() : null
-                ),
-
             FormField::addFieldset()
                 ->onlyOnForms()
                 ->setCssClass('fdlr-card'),
@@ -172,19 +161,6 @@ class BasketCrudController extends AbstractCrudController
 
             TextField::new('soldOutLabel', 'État')->onlyOnIndex(),
         ];
-    }
-
-    /**
-     * @return array<string, ProductCategory>
-     */
-    private function categoryChoices(): array
-    {
-        $choices = [];
-        foreach (ProductCategory::cases() as $category) {
-            $choices[$category->label()] = $category;
-        }
-
-        return $choices;
     }
 
     public function createEntity(string $entityFqcn): Product

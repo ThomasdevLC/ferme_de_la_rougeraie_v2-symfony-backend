@@ -136,40 +136,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    const variantsWrapper = document.querySelector('.variants-wrapper');
+    // Collapsible collection items whose accordion header shows a live title.
+    // Same treatment for the product variants and the basket composition; each
+    // collection just computes its title from its own fields.
+    const titleConfigs = [
+        {
+            wrapper: document.querySelector('.variants-wrapper'),
+            titleFor: (item, index) => {
+                const labelInput = item.querySelector('input[name$="[label]"]');
+                return labelInput?.value.trim() || ('Variant ' + (index + 1));
+            },
+        },
+        {
+            wrapper: document.querySelector('.basket-items-wrapper'),
+            titleFor: (item, index) => {
+                const select = item.querySelector('select[name$="[product]"]');
+                const chosen = select?.selectedOptions?.[0];
+                const name = (chosen && chosen.value) ? chosen.text.trim() : '';
+                if (!name) return 'Produit ' + (index + 1);
 
-    const variantItems = () =>
-        variantsWrapper ? [...variantsWrapper.querySelectorAll('.field-collection-item')] : [];
+                const qty = item.querySelector('input[name$="[quantity]"]')?.value.trim();
+                return qty ? `${name} × ${qty}` : name;
+            },
+        },
+    ].filter((config) => config.wrapper);
 
-    const setVariantTitle = (item) => {
+    const itemsOf = (wrapper) => [...wrapper.querySelectorAll('.field-collection-item')];
+
+    const applyTitle = (config, item) => {
         const header = item.querySelector('.accordion-button');
         if (!header) return;
 
-        const labelInput = item.querySelector('input[name$="[label]"]');
-        const index = variantItems().indexOf(item);
-        const text = labelInput?.value.trim() || ('Variant ' + (index + 1));
+        const index = itemsOf(config.wrapper).indexOf(item);
+        const text = config.titleFor(item, index);
 
-        let title = header.querySelector('.variant-title-js');
+        let title = header.querySelector('.collection-title-js');
         if (!title) {
             [...header.childNodes].forEach((node) => {
                 if (node.nodeType === Node.TEXT_NODE) node.remove();
             });
             title = document.createElement('span');
-            title.classList.add('variant-title-js');
+            title.classList.add('collection-title-js');
             header.appendChild(title);
         }
         title.textContent = text;
     };
 
-    variantItems().forEach(setVariantTitle);
+    titleConfigs.forEach((config) => {
+        itemsOf(config.wrapper).forEach((item) => applyTitle(config, item));
+
+        // Live update as the user fills the row (variant label, product, qty).
+        config.wrapper.addEventListener('change', (event) => {
+            const item = event.target.closest('.field-collection-item');
+            if (item) applyTitle(config, item);
+        });
+    });
+
+    const configForItem = (item) => titleConfigs.find((config) => config.wrapper.contains(item));
 
     document.addEventListener('click', (event) => {
         if (event.target.closest('.field-collection-add-button')) {
             setTimeout(() => {
-                const items = variantItems();
-                if (items.length) {
-                    setVariantTitle(items[items.length - 1]);
-                }
+                titleConfigs.forEach((config) => {
+                    const items = itemsOf(config.wrapper);
+                    if (items.length) applyTitle(config, items[items.length - 1]);
+                });
             }, 0);
             return;
         }
@@ -177,9 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const validate = event.target.closest('.variant-validate-button');
         if (validate) {
             const item = validate.closest('.field-collection-item');
-            if (item) {
-                setVariantTitle(item);
-            }
+            const config = item && configForItem(item);
+            if (config) applyTitle(config, item);
         }
     });
 
