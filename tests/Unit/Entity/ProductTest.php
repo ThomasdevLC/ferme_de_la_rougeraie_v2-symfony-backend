@@ -6,6 +6,7 @@ use App\Entity\BasketItem;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\ProductOrder;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -220,6 +221,52 @@ class ProductTest extends TestCase
      * A basket that satisfies every other validation rule, so only the
      * composition checks can fire during a test.
      */
+    public function testCategoryIsRequired(): void
+    {
+        // A product valid on every other rule, but without a category.
+        $product = $this->makeValidSimpleProduct();
+        $product->setCategory(null);
+
+        $builder = $this->createMock(ConstraintViolationBuilderInterface::class);
+        $builder->method('atPath')->willReturnSelf();
+        $builder->expects($this->once())->method('addViolation');
+
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $context->expects($this->once())
+            ->method('buildViolation')
+            ->with($this->stringContains('catégorie'))
+            ->willReturn($builder);
+
+        $product->validateProductRequirements($context);
+    }
+
+    public function testCategoryPresentPassesValidation(): void
+    {
+        $product = $this->makeValidSimpleProduct();
+        $product->setCategory(ProductCategory::VEGETABLE);
+
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $context->expects($this->never())->method('buildViolation');
+
+        $product->validateProductRequirements($context);
+    }
+
+    /**
+     * A simple product satisfying every validation rule except the one under
+     * test, so only that rule can fire.
+     */
+    private function makeValidSimpleProduct(): Product
+    {
+        $product = new Product();
+        $product->setName('Tomates');
+        $product->setUnit(ProductUnit::PIECE);
+        $product->setPrice(250);
+        $product->setHasStock(false);
+        $product->setCategory(ProductCategory::VEGETABLE);
+
+        return $product;
+    }
+
     private function makeValidBasket(): Product
     {
         $basket = new Product();

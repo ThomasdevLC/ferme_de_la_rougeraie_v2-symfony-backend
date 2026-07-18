@@ -521,6 +521,12 @@ class Product
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void
     {
+        if ($this->category === null) {
+            $context->buildViolation('La catégorie est requise.')
+                ->atPath('category')
+                ->addViolation();
+        }
+
         if (!$this->hasVariants && $this->hasStock && ($this->stock === null || $this->stock <= 0)) {
             $context->buildViolation('Le stock est requis ')
                 ->atPath('stock')
