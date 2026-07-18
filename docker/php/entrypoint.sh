@@ -10,6 +10,26 @@ if [ "$APP_ENV" = "prod" ]; then
 
     mkdir -p var/cache var/log var/sessions
 
+    # Migrations de schéma : jouées par le conteneur web uniquement (jamais le
+    # worker, pour éviter une double exécution concurrente), après avoir attendu
+    # que la base soit joignable (elle peut démarrer plus lentement que l'app).
+    if [ "$ROLE" != "worker" ]; then
+        echo "Attente de la base de données..."
+        ATTEMPTS=0
+        until php bin/console dbal:run-sql "SELECT 1" --env=prod >/dev/null 2>&1; do
+            ATTEMPTS=$((ATTEMPTS + 1))
+            if [ "$ATTEMPTS" -ge 30 ]; then
+                echo "Base de données injoignable après 30 tentatives, abandon." >&2
+                exit 1
+            fi
+            echo "  base indisponible, tentative $ATTEMPTS/30..."
+            sleep 2
+        done
+
+        echo "Application des migrations..."
+        php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+    fi
+
     php bin/console lexik:jwt:generate-keypair --skip-if-exists --env=prod
     php bin/console assets:install public --env=prod
     php bin/console importmap:install --env=prod
