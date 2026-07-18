@@ -31,7 +31,7 @@ class Product
     #[ORM\Column(nullable: false, enumType: ProductUnit::class )]
     private ?ProductUnit $unit = null;
 
-    #[ORM\Column(nullable: true, enumType: ProductCategory::class)]
+    #[ORM\Column(nullable: false, enumType: ProductCategory::class)]
     private ?ProductCategory $category = null;
 
     #[ORM\Column(nullable: true)]
