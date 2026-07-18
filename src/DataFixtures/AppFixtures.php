@@ -9,6 +9,7 @@ use App\Entity\Product;
 use App\Entity\ProductOrder;
 use App\Entity\User;
 use App\Enum\MessageType;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -31,26 +32,26 @@ class AppFixtures extends Fixture
         $faker = Factory::create('fr_FR');
 
         $produceConfig = [
-            'Carotte'     => ProductUnit::BUNCH,
-            'Tomate'      => ProductUnit::KG,
-            'Pomme'       => ProductUnit::PIECE,
-            'Laitue'      => ProductUnit::PIECE,
-            'Persil'      => ProductUnit::BUNCH,
-            'Concombre'   => ProductUnit::PIECE,
-            'Asperges'    => ProductUnit::BUNDLE,
-            'Fraise'      => ProductUnit::KG,
-            'Poivron'     => ProductUnit::KG,
-            'Aubergine'   => ProductUnit::KG,
-            'Courgette'   => ProductUnit::KG,
-            'Brocoli'     => ProductUnit::KG,
-            'Chou-fleur'  => ProductUnit::PIECE,
-            'Navet'       => ProductUnit::KG,
-            'Radis'       => ProductUnit::BUNCH,
-            'Épinard'     => ProductUnit::KG,
-            'Poire'       => ProductUnit::KG,
-            'Raisin'      => ProductUnit::KG,
-            'Citron'      => ProductUnit::PIECE,
-            'Courge'      => ProductUnit::KG,
+            'Carotte'     => [ProductUnit::BUNCH,  ProductCategory::VEGETABLE],
+            'Tomate'      => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Pomme'       => [ProductUnit::PIECE,  ProductCategory::FRUIT],
+            'Laitue'      => [ProductUnit::PIECE,  ProductCategory::VEGETABLE],
+            'Persil'      => [ProductUnit::BUNCH,  ProductCategory::HERB],
+            'Concombre'   => [ProductUnit::PIECE,  ProductCategory::VEGETABLE],
+            'Asperges'    => [ProductUnit::BUNDLE, ProductCategory::VEGETABLE],
+            'Fraise'      => [ProductUnit::KG,     ProductCategory::FRUIT],
+            'Poivron'     => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Aubergine'   => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Courgette'   => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Brocoli'     => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Chou-fleur'  => [ProductUnit::PIECE,  ProductCategory::VEGETABLE],
+            'Navet'       => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Radis'       => [ProductUnit::BUNCH,  ProductCategory::VEGETABLE],
+            'Épinard'     => [ProductUnit::KG,     ProductCategory::VEGETABLE],
+            'Poire'       => [ProductUnit::KG,     ProductCategory::FRUIT],
+            'Raisin'      => [ProductUnit::KG,     ProductCategory::FRUIT],
+            'Citron'      => [ProductUnit::PIECE,  ProductCategory::FRUIT],
+            'Courge'      => [ProductUnit::KG,     ProductCategory::VEGETABLE],
         ];
 
         // --- Création de l'admin ---
@@ -79,10 +80,11 @@ class AppFixtures extends Fixture
 
         // --- Création de produits ---
         $products = [];
-        foreach ($produceConfig as $name => $unit) {
+        foreach ($produceConfig as $name => [$unit, $category]) {
             $product = new Product();
             $product->setName($name);
             $product->setUnit($unit);
+            $product->setCategory($category);
 
             // Prix en centimes
             $euros = $faker->numberBetween(0, 9);
