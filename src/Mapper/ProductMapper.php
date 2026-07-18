@@ -38,7 +38,7 @@ class ProductMapper
             hasVariants: $product->hasVariants(),
             variants: $variants,
             isBasket: $product->isBasket(),
-            basketItems: self::basketItemsToDto($product),
+            basketItems: self::basketItemsToDto($product, $translator),
             category: self::categoryToDto($product->getCategory()),
         );
     }
@@ -49,7 +49,7 @@ class ProductMapper
      *
      * @return BasketItemDto[]
      */
-    private static function basketItemsToDto(Product $product): array
+    private static function basketItemsToDto(Product $product, UnitTranslator $translator): array
     {
         if (!$product->isBasket()) {
             return [];
@@ -65,6 +65,7 @@ class ProductMapper
             static fn (BasketItem $item): BasketItemDto => new BasketItemDto(
                 name: $item->getProduct()->getName(),
                 quantity: $item->getQuantity(),
+                unit: $translator->translate($item->getProduct()->getUnit()),
             ),
             $items
         );

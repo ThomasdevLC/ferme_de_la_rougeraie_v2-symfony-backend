@@ -64,6 +64,7 @@ class BasketApiTest extends WebTestCase
         foreach ($basket['basketItems'] as $item) {
             $this->assertArrayHasKey('name', $item);
             $this->assertArrayHasKey('quantity', $item);
+            $this->assertArrayHasKey('unit', $item);
         }
 
         // Regular products carry the flag too, false with an empty composition.
