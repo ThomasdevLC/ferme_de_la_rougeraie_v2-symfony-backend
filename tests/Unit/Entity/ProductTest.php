@@ -8,6 +8,8 @@ use App\Entity\User;
 use App\Entity\ProductOrder;
 use App\Enum\ProductUnit;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
 class ProductTest extends TestCase
 {
@@ -178,5 +180,55 @@ class ProductTest extends TestCase
         $basket->removeBasketItem($basketItem);
         $this->assertCount(0, $basket->getBasketItems());
         $this->assertNull($basketItem->getBasket());
+    }
+
+    public function testBasketRejectsDuplicateComponent(): void
+    {
+        $component = (new Product())->setName('Tomates');
+
+        $basket = $this->makeValidBasket();
+        // Same product added twice.
+        $basket->addBasketItem((new BasketItem())->setProduct($component)->setQuantity(1));
+        $basket->addBasketItem((new BasketItem())->setProduct($component)->setQuantity(2));
+
+        $builder = $this->createMock(ConstraintViolationBuilderInterface::class);
+        $builder->method('atPath')->willReturnSelf();
+        $builder->expects($this->once())->method('addViolation');
+
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $context->expects($this->once())
+            ->method('buildViolation')
+            ->with($this->stringContains('en double'))
+            ->willReturn($builder);
+
+        $basket->validateProductRequirements($context);
+    }
+
+    public function testBasketAcceptsDistinctComponents(): void
+    {
+        $basket = $this->makeValidBasket();
+        $basket->addBasketItem((new BasketItem())->setProduct((new Product())->setName('Tomates'))->setQuantity(1));
+        $basket->addBasketItem((new BasketItem())->setProduct((new Product())->setName('Salade'))->setQuantity(2));
+
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $context->expects($this->never())->method('buildViolation');
+
+        $basket->validateProductRequirements($context);
+    }
+
+    /**
+     * A basket that satisfies every other validation rule, so only the
+     * composition checks can fire during a test.
+     */
+    private function makeValidBasket(): Product
+    {
+        $basket = new Product();
+        $basket->markAsBasket();
+        $basket->setUnit(ProductUnit::PIECE);
+        $basket->setPrice(2500);
+        $basket->setHasStock(true);
+        $basket->setStock(10);
+
+        return $basket;
     }
 }

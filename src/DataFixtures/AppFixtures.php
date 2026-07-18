@@ -119,7 +119,7 @@ class AppFixtures extends Fixture
         $basket->setDiscount(false);
         $basket->setImage('default.jpg');
         $basket->setUser($admin);
-        $basket->setIsBasket(true);
+        $basket->markAsBasket();
         $manager->persist($basket);
 
         // Composition : trois premiers produits, quantités et positions fixes.

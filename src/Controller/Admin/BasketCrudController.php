@@ -167,7 +167,7 @@ class BasketCrudController extends AbstractCrudController
     {
         $basket = new Product();
         $basket->setUser($this->security->getUser());
-        $basket->setIsBasket(true);
+        $basket->markAsBasket();
         $basket->setUnit(ProductUnit::PIECE);
 
         return $basket;
@@ -192,7 +192,7 @@ class BasketCrudController extends AbstractCrudController
             return;
         }
 
-        $entityInstance->setIsBasket(true);
+        $entityInstance->markAsBasket();
         $this->optimizeImage($entityInstance);
 
         parent::persistEntity($entityManager, $entityInstance);

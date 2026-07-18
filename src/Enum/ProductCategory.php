@@ -4,6 +4,7 @@ namespace App\Enum;
 
 enum ProductCategory: string
 {
+    case BASKET        = 'BASKET';
     case VEGETABLE     = 'VEGETABLE';
     case FRUIT         = 'FRUIT';
     case HERB          = 'HERB';
@@ -17,6 +18,7 @@ enum ProductCategory: string
     public function label(): string
     {
         return match ($this) {
+            self::BASKET        => 'Panier',
             self::VEGETABLE     => 'Légumes',
             self::FRUIT         => 'Fruits',
             self::HERB          => 'Herbes',

@@ -16,6 +16,7 @@ class ProductCategoryTest extends TestCase
 
     public function testLabels(): void
     {
+        $this->assertSame('Panier', ProductCategory::BASKET->label());
         $this->assertSame('Légumes', ProductCategory::VEGETABLE->label());
         $this->assertSame('Fruits', ProductCategory::FRUIT->label());
         $this->assertSame('Herbes', ProductCategory::HERB->label());
@@ -39,6 +40,7 @@ class ProductCategoryTest extends TestCase
         );
 
         $this->assertSame([
+            'BASKET',
             'VEGETABLE',
             'FRUIT',
             'HERB',

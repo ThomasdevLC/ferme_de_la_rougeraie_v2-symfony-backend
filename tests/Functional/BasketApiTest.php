@@ -54,11 +54,17 @@ class BasketApiTest extends WebTestCase
             ->findOneBy(['isBasket' => true])
             ->getName();
         $this->assertSame($basketName, $basket['name']);
+
+        // A basket is auto-categorised "Panier" (BASKET) at creation.
+        $this->assertSame('BASKET', $basket['category']['key']);
+        $this->assertSame('Panier', $basket['category']['label']);
+
         $this->assertNotEmpty($basket['basketItems'], 'Le panier doit exposer sa composition');
 
         foreach ($basket['basketItems'] as $item) {
             $this->assertArrayHasKey('name', $item);
             $this->assertArrayHasKey('quantity', $item);
+            $this->assertArrayHasKey('unit', $item);
         }
 
         // Regular products carry the flag too, false with an empty composition.
