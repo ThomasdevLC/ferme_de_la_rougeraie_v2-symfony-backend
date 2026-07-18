@@ -551,5 +551,39 @@ class Product
                 ->addViolation();
         }
 
+        if ($this->isBasket) {
+            $this->validateNoDuplicateBasketComponents($context);
+        }
+    }
+
+    /**
+     * A product may appear only once in a basket's composition: enforce it with
+     * a clean form message (a unique index on basket_item guards the storage).
+     */
+    private function validateNoDuplicateBasketComponents(ExecutionContextInterface $context): void
+    {
+        $seen = [];
+        $reported = [];
+
+        foreach ($this->basketItems as $item) {
+            $component = $item->getProduct();
+            if ($component === null) {
+                continue;
+            }
+
+            $key = $component->getId() ?? spl_object_id($component);
+
+            if (isset($seen[$key]) && !isset($reported[$key])) {
+                $context->buildViolation(sprintf(
+                    'Le produit « %s » est en double dans la composition.',
+                    $component->getName()
+                ))
+                    ->atPath('basketItems')
+                    ->addViolation();
+                $reported[$key] = true;
+            }
+
+            $seen[$key] = true;
+        }
     }
 }

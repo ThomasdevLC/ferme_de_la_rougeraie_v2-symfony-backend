@@ -6,6 +6,7 @@ use App\Repository\Admin\BasketItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BasketItemRepository::class)]
+#[ORM\UniqueConstraint(name: 'uniq_basket_product', columns: ['basket_id', 'product_id'])]
 class BasketItem
 {
     #[ORM\Id]
