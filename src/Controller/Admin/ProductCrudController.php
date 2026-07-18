@@ -224,6 +224,8 @@ class ProductCrudController extends AbstractCrudController
                 ])
                 ->setFormTypeOption('row_attr', ['class' => 'stock-wrapper']),
 
+            BooleanField::new('limited')->setLabel('Qté Limitée'),
+
             BooleanField::new('discount')
                 ->hideOnIndex()
                 ->setLabel('Promo')
@@ -235,8 +237,6 @@ class ProductCrudController extends AbstractCrudController
                 ->onlyOnForms()
                 ->setLabel('Texte Promo')
                 ->setFormTypeOption('row_attr', ['class' => 'discountText-wrapper']),
-
-            BooleanField::new('limited')->setLabel('Qté Limitée'),
 
             TextField::new('soldOutLabel', 'État')
                 ->onlyOnIndex(),
