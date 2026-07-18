@@ -306,6 +306,9 @@ class ProductCrudController extends AbstractCrudController
     {
         $choices = [];
         foreach (ProductCategory::cases() as $category) {
+            if ($category === ProductCategory::BASKET) {
+                continue;
+            }
             $choices[$category->label()] = $category;
         }
 

@@ -333,6 +333,14 @@ class Product
         return $this;
     }
 
+    public function markAsBasket(): static
+    {
+        $this->isBasket = true;
+        $this->category = ProductCategory::BASKET;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
