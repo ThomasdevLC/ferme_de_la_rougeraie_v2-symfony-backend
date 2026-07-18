@@ -229,4 +229,115 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+    // Basket composition: we take the row "Valider" button away from Bootstrap
+    // and drive the collapse ourselves, so a row only closes once a product and
+    // a positive quantity are set and the product is not already used in another
+    // row. (The header title toggle stays Bootstrap's. Server + unique index
+    // still enforce all of this on submit.)
+    const basketWrapper = document.querySelector('.basket-items-wrapper');
+
+    if (basketWrapper) {
+        const rowState = (item) => {
+            const productEl = item.querySelector('select[name$="[product]"]');
+            const product = productEl?.value ?? '';
+            const qtyRaw = item.querySelector('input[name$="[quantity]"]')?.value.trim() ?? '';
+            const qty = qtyRaw !== '' ? Number(qtyRaw) : NaN;
+
+            let duplicate = false;
+            if (product) {
+                basketWrapper.querySelectorAll('select[name$="[product]"]').forEach((sel) => {
+                    if (sel !== productEl && sel.value === product) {
+                        duplicate = true;
+                    }
+                });
+            }
+
+            return {
+                product: !!product,
+                quantity: qtyRaw !== '' && !Number.isNaN(qty) && qty > 0,
+                duplicate,
+            };
+        };
+
+        const setRowError = (item, message) => {
+            let box = item.querySelector('.basket-row-error');
+            if (!message) {
+                box?.remove();
+                return;
+            }
+            if (!box) {
+                box = document.createElement('div');
+                box.className = 'basket-row-error';
+                const actions = item.querySelector('.variant-actions-row');
+                actions?.parentNode.insertBefore(box, actions);
+            }
+            box.textContent = message;
+        };
+
+        // Strip Bootstrap's collapse toggle from the "Valider" buttons (also on
+        // rows added later via "+ Ajouter"), keeping the target for our own use.
+        const releaseValidateButtons = () => {
+            basketWrapper
+                .querySelectorAll('.variant-validate-button[data-bs-toggle="collapse"]')
+                .forEach((btn) => {
+                    btn.dataset.basketTarget = btn.getAttribute('data-bs-target') || '';
+                    btn.removeAttribute('data-bs-toggle');
+                    btn.removeAttribute('data-bs-target');
+                });
+        };
+        releaseValidateButtons();
+
+        const collapseRow = (item, validateBtn) => {
+            const sel = validateBtn.dataset.basketTarget;
+            const content = sel ? document.querySelector(sel) : item.querySelector('.accordion-collapse');
+            const header = item.querySelector('.accordion-button');
+            content?.classList.remove('show');
+            if (header) {
+                header.classList.add('collapsed');
+                header.setAttribute('aria-expanded', 'false');
+            }
+        };
+
+        basketWrapper.addEventListener('click', (event) => {
+            const validate = event.target.closest('.variant-validate-button');
+            if (!validate) return;
+
+            const item = validate.closest('.field-collection-item');
+            if (!item) return;
+
+            const state = rowState(item);
+            if (state.product && state.quantity && !state.duplicate) {
+                setRowError(item, '');
+                collapseRow(item, validate);
+                return;
+            }
+
+            if (state.duplicate) {
+                setRowError(item, 'Ce produit est déjà dans la composition.');
+                return;
+            }
+
+            const missing = [];
+            if (!state.product) missing.push('un produit');
+            if (!state.quantity) missing.push('une quantité valide');
+            setRowError(item, 'Renseignez ' + missing.join(' et ') + ' avant de valider.');
+        });
+
+        // New rows added via "+ Ajouter" ship with Bootstrap's toggle: release them too.
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.field-collection-add-button')) {
+                setTimeout(releaseValidateButtons, 0);
+            }
+        });
+
+        // Clear the message as soon as the row is edited.
+        const clearOnEdit = (event) => {
+            const item = event.target.closest('.field-collection-item');
+            if (item) setRowError(item, '');
+        };
+        basketWrapper.addEventListener('change', clearOnEdit);
+        basketWrapper.addEventListener('input', clearOnEdit);
+    }
+
 });
