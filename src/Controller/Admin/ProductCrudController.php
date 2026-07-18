@@ -293,6 +293,14 @@ class ProductCrudController extends AbstractCrudController
                 ChoiceFilter::new('category')
                     ->setLabel('Catégorie')
                     ->setChoices($this->categoryChoices())
+            )
+            ->add(
+                ChoiceFilter::new('hasVariants')
+                    ->setLabel('Variants')
+                    ->setChoices([
+                        'Avec variants' => true,
+                        'Sans variants' => false,
+                    ])
             );
     }
 
