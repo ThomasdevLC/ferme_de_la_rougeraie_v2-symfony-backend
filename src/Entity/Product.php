@@ -31,7 +31,7 @@ class Product
     #[ORM\Column(nullable: false, enumType: ProductUnit::class )]
     private ?ProductUnit $unit = null;
 
-    #[ORM\Column(nullable: true, enumType: ProductCategory::class)]
+    #[ORM\Column(nullable: false, enumType: ProductCategory::class)]
     private ?ProductCategory $category = null;
 
     #[ORM\Column(nullable: true)]
@@ -521,6 +521,12 @@ class Product
     #[Assert\Callback]
     public function validateProductRequirements(ExecutionContextInterface $context): void
     {
+        if ($this->category === null) {
+            $context->buildViolation('La catégorie est requise.')
+                ->atPath('category')
+                ->addViolation();
+        }
+
         if (!$this->hasVariants && $this->hasStock && ($this->stock === null || $this->stock <= 0)) {
             $context->buildViolation('Le stock est requis ')
                 ->atPath('stock')

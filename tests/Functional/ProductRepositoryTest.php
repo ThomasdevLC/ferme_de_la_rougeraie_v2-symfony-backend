@@ -7,6 +7,7 @@ use App\Entity\Order;
 use App\Entity\Product;
 use App\Entity\ProductOrder;
 use App\Entity\User;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Repository\Admin\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -62,6 +63,7 @@ class ProductRepositoryTest extends KernelTestCase
             ->setName($name)
             ->setPrice(100)
             ->setUnit(ProductUnit::PIECE)
+            ->setCategory(ProductCategory::VEGETABLE)
             ->setImage('default.jpg')
             ->setUser($this->admin);
 

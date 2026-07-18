@@ -6,6 +6,7 @@ use App\DataFixtures\AppFixtures;
 use App\Entity\Product;
 use App\Entity\ProductVariant;
 use App\Entity\User;
+use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Repository\Store\ProductStoreRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -75,6 +76,7 @@ class ProductStoreRepositoryTest extends KernelTestCase
         $product = (new Product())
             ->setName($name)
             ->setUnit(ProductUnit::PIECE)
+            ->setCategory(ProductCategory::VEGETABLE)
             ->setImage('default.jpg')
             ->setUser($this->admin)
             ->setIsDisplayed(true)
