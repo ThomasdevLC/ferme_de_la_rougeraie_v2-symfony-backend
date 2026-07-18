@@ -134,7 +134,7 @@ class ProductCrudController extends AbstractCrudController
             ChoiceField::new('category')
                 ->setLabel('Catégorie')
                 ->setChoices($this->categoryChoices())
-                ->setRequired(false)
+                ->setRequired(true)
                 ->renderExpanded()
                 ->setFormTypeOption('row_attr', ['class' => 'choice-pills'])
                 ->formatValue(
