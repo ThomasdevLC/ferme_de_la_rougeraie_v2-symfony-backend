@@ -44,6 +44,7 @@ class BasketCrudController extends AbstractCrudController
     {
         return $assets
             ->addJsFile('js/admin/product-form.js')
+            ->addJsFile('js/admin/basket-list.js')
             ->addCssFile('css/admin/custom.css');
     }
 
@@ -194,6 +195,7 @@ class BasketCrudController extends AbstractCrudController
 
         $entityInstance->markAsBasket();
         $this->optimizeImage($entityInstance);
+        $this->unpublishOtherBaskets($entityManager, $entityInstance);
 
         parent::persistEntity($entityManager, $entityInstance);
     }
@@ -211,7 +213,32 @@ class BasketCrudController extends AbstractCrudController
             $this->optimizeImage($entityInstance);
         }
 
+        $this->unpublishOtherBaskets($entityManager, $entityInstance);
+
         parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    /**
+     * Enforce "only one displayed basket at a time": when this basket is
+     * saved as displayed, hide every other basket.
+     */
+    private function unpublishOtherBaskets(EntityManagerInterface $entityManager, Product $basket): void
+    {
+        if (!$basket->isDisplayed()) {
+            return;
+        }
+
+        $qb = $entityManager->createQueryBuilder()
+            ->update(Product::class, 'p')
+            ->set('p.isDisplayed', ':hidden')
+            ->where('p.isBasket = true')
+            ->setParameter('hidden', false);
+
+        if ($basket->getId() !== null) {
+            $qb->andWhere('p.id != :id')->setParameter('id', $basket->getId());
+        }
+
+        $qb->getQuery()->execute();
     }
 
     private function optimizeImage(Product $product): void
