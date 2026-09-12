@@ -110,4 +110,37 @@ class ProductRepository extends ServiceEntityRepository
         return array_column($rows, 'id');
     }
 
+    /**
+     * Another non-deleted basket already using this name, or null when the name
+     * is free.
+     *
+     * The comparison is case- and accent-insensitive for free: the schema uses
+     * the utf8mb4_unicode_ci collation. This matters because the name is
+     * title-cased only later, by the TitleCaseListener.
+     *
+     * isDisplayed comes back so the caller can tell the admin when the clashing
+     * basket is hidden — otherwise the error points at a basket absent from the
+     * list, which reads as a phantom.
+     *
+     * @return array{id: int, isDisplayed: bool}|null
+     */
+    public function findConflictingBasket(string $name, ?int $excludeId): ?array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select('p.id', 'p.isDisplayed')
+            ->where('p.isBasket = true')
+            ->andWhere('p.isDeleted = false')
+            ->andWhere('p.name = :name')
+            ->setParameter('name', $name)
+            ->setMaxResults(1);
+
+        if (null !== $excludeId) {
+            $qb->andWhere('p.id != :id')->setParameter('id', $excludeId);
+        }
+
+        $row = $qb->getQuery()->getOneOrNullResult();
+
+        return null === $row ? null : ['id' => $row['id'], 'isDisplayed' => (bool) $row['isDisplayed']];
+    }
+
 }

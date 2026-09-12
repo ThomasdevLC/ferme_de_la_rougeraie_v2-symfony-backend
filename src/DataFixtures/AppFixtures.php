@@ -109,29 +109,37 @@ class AppFixtures extends Fixture
             $products[] = $product;
         }
 
-        // --- Création d'un panier de la semaine (produit composite) ---
-        $basket = new Product();
-        $basket->setName('Panier de la semaine');
-        $basket->setUnit(ProductUnit::PIECE);
-        $basket->setPrice(2500);
-        $basket->setIsDisplayed(true);
-        $basket->setHasStock(true);
-        $basket->setStock(15);
-        $basket->setLimited(true);
-        $basket->setDiscount(false);
-        $basket->setImage('default.jpg');
-        $basket->setUser($admin);
-        $basket->markAsBasket();
-        $manager->persist($basket);
+        // --- Création des paniers de la semaine (produits composites) ---
+        // Plusieurs paniers peuvent être affichés en même temps ; leurs noms
+        // doivent rester distincts (contrainte UniqueBasketName).
+        $basketBlueprints = [
+            ['Panier de la semaine (petit)', 2500, 15, [[0, 2], [1, 1], [2, 3]]],
+            ['Panier de la semaine (grand)', 4000,  8, [[0, 4], [1, 2], [3, 1]]],
+        ];
 
-        // Composition : trois premiers produits, quantités et positions fixes.
-        foreach ([[0, 2], [1, 1], [2, 3]] as $position => [$index, $quantity]) {
-            $basketItem = new BasketItem();
-            $basketItem->setProduct($products[$index]);
-            $basketItem->setQuantity($quantity);
-            $basketItem->setPosition($position);
-            $basket->addBasketItem($basketItem);
-            $manager->persist($basketItem);
+        foreach ($basketBlueprints as [$basketName, $basketPrice, $basketStock, $composition]) {
+            $basket = new Product();
+            $basket->setName($basketName);
+            $basket->setUnit(ProductUnit::PIECE);
+            $basket->setPrice($basketPrice);
+            $basket->setIsDisplayed(true);
+            $basket->setHasStock(true);
+            $basket->setStock($basketStock);
+            $basket->setLimited(true);
+            $basket->setDiscount(false);
+            $basket->setImage('default.jpg');
+            $basket->setUser($admin);
+            $basket->markAsBasket();
+            $manager->persist($basket);
+
+            foreach ($composition as $position => [$index, $quantity]) {
+                $basketItem = new BasketItem();
+                $basketItem->setProduct($products[$index]);
+                $basketItem->setQuantity($quantity);
+                $basketItem->setPosition($position);
+                $basket->addBasketItem($basketItem);
+                $manager->persist($basketItem);
+            }
         }
 
 
