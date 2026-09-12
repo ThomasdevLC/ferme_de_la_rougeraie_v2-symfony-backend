@@ -6,6 +6,7 @@ use App\Attribute\AutoTitleCase;
 use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use App\Repository\Admin\ProductRepository;
+use App\Validator\UniqueBasketName;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,6 +15,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\EntityListeners(['App\EventListener\TitleCaseListener'])]
+#[UniqueBasketName]
 class Product
 {
     #[ORM\Id]
