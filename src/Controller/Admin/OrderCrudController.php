@@ -20,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\NullFilter;
 
 class OrderCrudController extends AbstractCrudController
 
@@ -33,7 +34,8 @@ class OrderCrudController extends AbstractCrudController
     {
         return $crud
             ->setEntityLabelInSingular('📦 Commande')
-            ->setEntityLabelInPlural('📦 Commandes');
+            ->setEntityLabelInPlural('📦 Commandes')
+            ->setDefaultSort(['createdAt' => 'DESC', 'id' => 'DESC']);
     }
 
     public function configureFields(string $pageName): iterable
@@ -56,7 +58,10 @@ class OrderCrudController extends AbstractCrudController
                 )
                 ->formatValue(fn($value) => PickupDay::fromWeekday((int) $value)->label())->hideOnDetail(),
 
-            BooleanField::new('done', 'Traitée')->renderAsSwitch(true)->hideOnDetail(),
+            BooleanField::new('done', 'Traitée')
+                ->renderAsSwitch(true)
+                ->setTemplatePath('admin/field/cancelled_badge.html.twig')
+                ->hideOnDetail(),
         ];
 
         if (Crud::PAGE_DETAIL === $pageName) {
@@ -88,6 +93,11 @@ class OrderCrudController extends AbstractCrudController
             ->add(
                 BooleanFilter::new('done')
                     ->setLabel('Traitée')
+            )
+            ->add(
+                NullFilter::new('cancelledAt')
+                    ->setLabel('Annulée')
+                    ->setChoiceLabels('Non annulée', 'Annulée')
             )
             ->add(
                 ChoiceFilter::new('pickupDay')

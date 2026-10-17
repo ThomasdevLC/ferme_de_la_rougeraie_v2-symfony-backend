@@ -38,6 +38,12 @@ class Order
     #[ORM\Column(options: ['default' => false])]
     private bool $isDeleted = false;
 
+    /**
+     * Set when the customer cancels the order; null while it is active.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $cancelledAt = null;
+
 
     /**
      * @var Collection<int, ProductOrder>
@@ -135,6 +141,27 @@ class Order
     public function setIsDeleted(bool $isDeleted): static
     {
         $this->isDeleted = $isDeleted;
+
+        return $this;
+    }
+
+    public function getCancelledAt(): ?\DateTimeImmutable
+    {
+        return $this->cancelledAt;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->cancelledAt !== null;
+    }
+
+    /**
+     * Marks the order as cancelled now. Business checks (cutoff, stock
+     * restoration) belong to the service.
+     */
+    public function cancel(): static
+    {
+        $this->cancelledAt = new DateTimeImmutable('now', new DateTimeZone('Europe/Paris'));
 
         return $this;
     }

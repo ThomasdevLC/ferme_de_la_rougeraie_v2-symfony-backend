@@ -181,4 +181,30 @@ class OrderStoreController extends AbstractController
         }
     }
 
+    /**
+     * DELETE /api/orders/{id}
+     * Customer cancellation: the order is kept (cancelledAt + done) and its
+     * stock restored. No body, so no catch-all: anything else is a real bug.
+     */
+    #[Route('/{id}', name: 'cancel', methods: ['DELETE'])]
+    public function cancel(int $id, OrderStoreService $orderStoreService): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $orderStoreService->cancelOrder($id, $user);
+
+            return new JsonResponse(null, 204);
+
+        } catch (SecurityAccessDeniedException $e) {
+            return $this->json(['error' => $e->getMessage()], 403);
+
+        } catch (DomainException $e) {
+            return $this->json(['error' => $e->getMessage()], 409);
+        }
+    }
+
 }

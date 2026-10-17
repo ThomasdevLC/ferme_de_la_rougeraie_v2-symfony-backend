@@ -16,8 +16,10 @@ use App\Service\Store\OrderStoreService;
 use App\Service\Store\StockStoreService;
 use DateTimeImmutable;
 use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
 use DomainException;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class OrderStoreServiceTest extends TestCase
 {
@@ -26,7 +28,11 @@ class OrderStoreServiceTest extends TestCase
         StockStoreService $stockService,
         OrderMapper $mapper
     ): OrderStoreService {
-        return new OrderStoreService($repo, $stockService, $mapper);
+        // Run the transactional callback directly: no real database here.
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('wrapInTransaction')->willReturnCallback(fn (callable $func) => $func());
+
+        return new OrderStoreService($repo, $stockService, $mapper, $em);
     }
 
     private function buildDto(DateTimeImmutable $pickupDate): OrderCreateDto
@@ -85,7 +91,7 @@ class OrderStoreServiceTest extends TestCase
         $user  = new User();
 
         $repo = $this->createMock(OrderStoreRepository::class);
-        $repo->method('findOneByIdAndUser')->willReturn($order);
+        $repo->method('findOneByIdAndUserForUpdate')->willReturn($order);
 
         $stock = $this->createMock(StockStoreService::class);
         $stock->expects($this->never())->method('increaseStock');
@@ -122,7 +128,7 @@ class OrderStoreServiceTest extends TestCase
         );
 
         $repo = $this->createMock(OrderStoreRepository::class);
-        $repo->method('findOneByIdAndUser')->willReturn($order);
+        $repo->method('findOneByIdAndUserForUpdate')->willReturn($order);
 
         $stock = $this->createMock(StockStoreService::class);
         // Variant line must restore variant stock, not product stock.
@@ -139,6 +145,85 @@ class OrderStoreServiceTest extends TestCase
             dto: $this->buildDto(new DateTimeImmutable('+3 days', $tz)),
             user: new User()
         );
+    }
+
+    public function testCancelOrderRestoresStockAndMarksOrderCancelledAndDone(): void
+    {
+        $tz    = new DateTimeZone('Europe/Paris');
+        $order = (new Order())->setPickupDate(new DateTimeImmutable('+3 days', $tz));
+
+        $product = new Product();
+        $this->setId($product, 3);
+        $variant = new ProductVariant();
+        $this->setId($variant, 5);
+
+        $order->addProductOrder(
+            (new ProductOrder())->setProduct($product)->setQuantity(1.5)->setUnitPrice(100)
+        );
+        $order->addProductOrder(
+            (new ProductOrder())->setProduct(new Product())->setProductVariant($variant)->setQuantity(2)->setUnitPrice(100)
+        );
+
+        $repo = $this->createMock(OrderStoreRepository::class);
+        $repo->method('findOneByIdAndUserForUpdate')->willReturn($order);
+        $repo->expects($this->once())->method('save')->with($order);
+
+        $stock = $this->createMock(StockStoreService::class);
+        $stock->expects($this->once())->method('increaseStock')->with(3, 1.5);
+        $stock->expects($this->once())->method('increaseVariantStock')->with(5, 2.0);
+
+        $service = $this->buildService($repo, $stock, $this->createMock(OrderMapper::class));
+        $service->cancelOrder(orderId: 1, user: new User());
+
+        $this->assertTrue($order->isCancelled());
+        $this->assertTrue($order->isDone());
+        // Lines are kept for the admin history.
+        $this->assertCount(2, $order->getProductOrders());
+    }
+
+    public function testCancelExpiredOrderFails(): void
+    {
+        $tz    = new DateTimeZone('Europe/Paris');
+        $order = (new Order())->setPickupDate(new DateTimeImmutable('-1 day', $tz));
+        $order->addProductOrder(
+            (new ProductOrder())->setProduct(new Product())->setQuantity(1)->setUnitPrice(100)
+        );
+
+        $repo = $this->createMock(OrderStoreRepository::class);
+        $repo->method('findOneByIdAndUserForUpdate')->willReturn($order);
+        $repo->expects($this->never())->method('save');
+
+        $stock = $this->createMock(StockStoreService::class);
+        $stock->expects($this->never())->method('increaseStock');
+        $stock->expects($this->never())->method('increaseVariantStock');
+
+        $service = $this->buildService($repo, $stock, $this->createMock(OrderMapper::class));
+
+        try {
+            $service->cancelOrder(orderId: 1, user: new User());
+            $this->fail('DomainException expected');
+        } catch (DomainException $e) {
+            $this->assertSame('Cette commande ne peut plus être annulée.', $e->getMessage());
+        }
+
+        $this->assertFalse($order->isCancelled());
+    }
+
+    public function testCancelUnknownOrderFails(): void
+    {
+        $repo = $this->createMock(OrderStoreRepository::class);
+        $repo->method('findOneByIdAndUserForUpdate')->willReturn(null);
+        $repo->expects($this->never())->method('save');
+
+        $stock = $this->createMock(StockStoreService::class);
+        $stock->expects($this->never())->method('increaseStock');
+        $stock->expects($this->never())->method('increaseVariantStock');
+
+        $service = $this->buildService($repo, $stock, $this->createMock(OrderMapper::class));
+
+        $this->expectException(AccessDeniedException::class);
+
+        $service->cancelOrder(orderId: 999, user: new User());
     }
 
     private function buildOrderDetailsDto(): OrderDetailsDto

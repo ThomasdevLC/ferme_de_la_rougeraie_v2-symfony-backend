@@ -60,4 +60,21 @@ class OrderTest extends TestCase
         $this->assertCount(0, $order->getProductOrders());
         $this->assertNull($productOrder->getOrder());
     }
+
+    public function testNewOrderIsNotCancelled()
+    {
+        $order = new Order();
+
+        $this->assertFalse($order->isCancelled());
+        $this->assertNull($order->getCancelledAt());
+    }
+
+    public function testCancelSetsCancelledAt()
+    {
+        $order = new Order();
+        $order->cancel();
+
+        $this->assertTrue($order->isCancelled());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $order->getCancelledAt());
+    }
 }

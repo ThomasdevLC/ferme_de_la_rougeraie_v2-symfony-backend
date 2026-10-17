@@ -48,4 +48,38 @@ class ProductClientTabServiceTest extends TestCase
         $this->assertSame(3.0, $grid[10]['253-3']);
         $this->assertSame(1.0, $grid[10]['99-0']);
     }
+
+    public function testLineTotalsSumAllUsersAndUserTotalsAreInEuros(): void
+    {
+        $rows = [
+            ['userId' => 10, 'productId' => 99, 'variantId' => null, 'variantLabel' => null, 'totalQuantity' => '1.5', 'totalCents' => '450'],
+            ['userId' => 20, 'productId' => 99, 'variantId' => null, 'variantLabel' => null, 'totalQuantity' => '2',   'totalCents' => '600'],
+            ['userId' => 20, 'productId' => 50, 'variantId' => null, 'variantLabel' => null, 'totalQuantity' => '3',   'totalCents' => '255'],
+        ];
+
+        $orderRepo = $this->createMock(ProductOrderRepository::class);
+        $orderRepo->method('getUserVariantQuantitiesByPickupDay')->willReturn($rows);
+
+        $productService = $this->createMock(ProductService::class);
+        $productService->method('getProductAdminDtosByIds')->willReturn([
+            new ProductAdminDto(99, 'Tomate', 'Kilo', true, false),
+            new ProductAdminDto(50, 'Carotte', 'Botte', true, false),
+        ]);
+
+        $userRepo = $this->createMock(UserRepository::class);
+        $userRepo->method('findUsersByIds')->willReturn([]);
+
+        $service = new ProductClientTabService($orderRepo, $productService, $userRepo);
+
+        [$lines, , , $userTotals] = $service->getProductClientQuantitiesByWeekday(2);
+
+        $totalsByKey = array_column($lines, 'totalQuantity', 'key');
+        // Tomate: 1.5 + 2 over both users; Carotte: 3 for one user.
+        $this->assertSame(3.5, $totalsByKey['99-0']);
+        $this->assertSame(3.0, $totalsByKey['50-0']);
+
+        // Amounts per user, converted from cents.
+        $this->assertSame(4.5, $userTotals[10]);
+        $this->assertSame(8.55, $userTotals[20]);
+    }
 }

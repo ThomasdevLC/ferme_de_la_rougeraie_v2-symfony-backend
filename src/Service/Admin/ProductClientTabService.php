@@ -16,14 +16,16 @@ class ProductClientTabService
 
     /**
      * Gets the ordered lines for a given pickup weekday (one line per
-     * product/variant), the users who placed orders, and a quantity grid.
+     * product/variant, with its quantity summed over all users), the users
+     * who placed orders, a quantity grid, and each user's amount in euros.
      *
      * @param int $weekday The selected pickup weekday (1 = Monday … 7 = Sunday)
      *
      * @return array{
-     *     0: array<int, array{key: string, productName: string, unit: string, variantLabel: ?string}>,
+     *     0: array<int, array{key: string, productName: string, unit: string, variantLabel: ?string, totalQuantity: float}>,
      *     1: User[],
-     *     2: array<int, array<string, float>>
+     *     2: array<int, array<string, float>>,
+     *     3: array<int, float>
      * }
      */
     public function getProductClientQuantitiesByWeekday(int $weekday): array
@@ -40,28 +42,30 @@ class ProductClientTabService
             $productById[$dto->id] = $dto;
         }
 
-        [$lines, $quantitiesTab] = $this->buildLinesAndQuantities($rows, $productById);
+        [$lines, $quantitiesTab, $userTotals] = $this->buildLinesAndQuantities($rows, $productById);
 
         $userIds = array_keys($quantitiesTab);
         $users   = $userIds
             ? $this->userRepository->findUsersByIds($userIds)
             : [];
 
-        return [$lines, $users, $quantitiesTab];
+        return [$lines, $users, $quantitiesTab, $userTotals];
     }
 
     /**
      * Turns raw rows into display lines (one per product/variant, keyed by
-     * "productId-variantId") and a quantity grid [userId][lineKey] => qty.
+     * "productId-variantId", with the quantity summed over all users), a
+     * quantity grid [userId][lineKey] => qty, and [userId] => amount in euros.
      *
-     * @param array<array{userId: int|string, productId: int|string, variantId: int|string|null, variantLabel: ?string, totalQuantity: string}> $rows
+     * @param array<array{userId: int|string, productId: int|string, variantId: int|string|null, variantLabel: ?string, totalQuantity: string, totalCents?: string}> $rows
      * @param array<int, ProductAdminDto> $productById
-     * @return array{0: array<int, array{key: string, productName: string, unit: string, variantLabel: ?string}>, 1: array<int, array<string, float>>}
+     * @return array{0: array<int, array{key: string, productName: string, unit: string, variantLabel: ?string, totalQuantity: float}>, 1: array<int, array<string, float>>, 2: array<int, float>}
      */
     private function buildLinesAndQuantities(array $rows, array $productById): array
     {
         $lines = [];
         $quantitiesTab = [];
+        $userTotalCents = [];
 
         foreach ($rows as $row) {
             $userId    = (int) $row['userId'];
@@ -76,10 +80,14 @@ class ProductClientTabService
                     'productName'  => $dto?->name ?? '',
                     'unit'         => $dto?->unit ?? '',
                     'variantLabel' => $row['variantLabel'] ?? null,
+                    'totalQuantity' => 0.0,
                 ];
             }
 
-            $quantitiesTab[$userId][$key] = (float) $row['totalQuantity'];
+            $quantity = (float) $row['totalQuantity'];
+            $quantitiesTab[$userId][$key] = $quantity;
+            $lines[$key]['totalQuantity'] += $quantity;
+            $userTotalCents[$userId] = ($userTotalCents[$userId] ?? 0.0) + (float) ($row['totalCents'] ?? 0);
         }
 
         // Group variants under their product, alphabetically.
@@ -88,6 +96,11 @@ class ProductClientTabService
             <=> [$b['productName'], $b['variantLabel'] ?? '']
         );
 
-        return [array_values($lines), $quantitiesTab];
+        $userTotals = array_map(
+            static fn(float $cents): float => round($cents / 100, 2),
+            $userTotalCents
+        );
+
+        return [array_values($lines), $quantitiesTab, $userTotals];
     }
 }

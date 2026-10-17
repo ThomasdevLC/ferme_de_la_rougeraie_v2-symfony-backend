@@ -11,6 +11,7 @@ use App\Mapper\OrderMapper;
 use App\Repository\Store\OrderStoreRepository;
 use DateTimeImmutable;
 use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
 use DomainException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -19,7 +20,8 @@ class OrderStoreService
     public function __construct(
         private OrderStoreRepository $orderStoreRepository,
         private StockStoreService    $stockService,
-        private OrderMapper          $mapper
+        private OrderMapper          $mapper,
+        private EntityManagerInterface $em
     ) {}
 
     /**
@@ -75,41 +77,91 @@ class OrderStoreService
      */
     public function editOrder(int $orderId, OrderCreateDto $dto, User $user): OrderDetailsDto
     {
-        $order = $this->orderStoreRepository->findOneByIdAndUser($orderId, $user);
+        return $this->em->wrapInTransaction(function () use ($orderId, $dto, $user): OrderDetailsDto {
+            $order = $this->findLockedOrderOrFail($orderId, $user);
+
+            if (!$order->isEditable()) {
+                throw new DomainException('Cette commande ne peut plus être modifiée.');
+            }
+
+            $this->restoreStock($order);
+            foreach ($order->getProductOrders()->toArray() as $oldLine) {
+                $order->removeProductOrder($oldLine);
+            }
+
+            $newPickupDate = $dto->pickupDate
+                ->setTimezone(new DateTimeZone('Europe/Paris'));
+            $this->checkPickupDateWithinWindow($newPickupDate);
+            $order->setPickupDate($newPickupDate);
+
+            $productData = $this->decreaseStockAndBuildProductData($dto->items);
+
+            $this->mapper->updateFromDto($dto, $order, $productData);
+
+            $this->orderStoreRepository->save($order);
+            return $this->mapper->toDto($order);
+        });
+    }
+
+    /**
+     * Cancel a customer order: restore its stock, then mark it cancelled and
+     * done. Lines and total are kept for the admin history.
+     *
+     * @throws AccessDeniedException if order not found, not owned by user or already cancelled
+     * @throws DomainException       if cutoff is passed
+     */
+    public function cancelOrder(int $orderId, User $user): void
+    {
+        $this->em->wrapInTransaction(function () use ($orderId, $user): void {
+            $order = $this->findLockedOrderOrFail($orderId, $user);
+
+            if (!$order->isEditable()) {
+                throw new DomainException('Cette commande ne peut plus être annulée.');
+            }
+
+            $this->restoreStock($order);
+
+            $order->cancel()->setDone(true);
+
+            $this->orderStoreRepository->save($order);
+        });
+    }
+
+    /**
+     * Load the order with a row lock (see findOneByIdAndUserForUpdate).
+     * Must be called inside a transaction.
+     *
+     * @throws AccessDeniedException if order not found, not owned by user or already cancelled
+     */
+    private function findLockedOrderOrFail(int $orderId, User $user): Order
+    {
+        $order = $this->orderStoreRepository->findOneByIdAndUserForUpdate($orderId, $user);
         if (! $order) {
             throw new AccessDeniedException('Cette commande n\'existe pas ou vous n\'êtes pas autorisé à la modifier.');
         }
 
-        if (!$order->isEditable()) {
-            throw new DomainException('Cette commande ne peut plus être modifiée.');
-        }
+        return $order;
+    }
 
-        foreach ($order->getProductOrders() as $oldLine) {
-            if ($oldLine->getProductVariant() !== null) {
+    /**
+     * Give back to stock every line of the order: a variant line restores the
+     * variant's stock, a simple line the product's. Lines are left untouched.
+     */
+    private function restoreStock(Order $order): void
+    {
+        foreach ($order->getProductOrders() as $line) {
+            if ($line->getProductVariant() !== null) {
                 $this->stockService->increaseVariantStock(
-                    $oldLine->getProductVariant()->getId(),
-                    $oldLine->getQuantity()
+                    $line->getProductVariant()->getId(),
+                    $line->getQuantity()
                 );
             } else {
                 $this->stockService->increaseStock(
-                    $oldLine->getProduct()->getId(),
-                    $oldLine->getQuantity()
+                    $line->getProduct()->getId(),
+                    $line->getQuantity()
                 );
             }
-            $order->removeProductOrder($oldLine);
         }
-
-        $newPickupDate = $dto->pickupDate
-            ->setTimezone(new DateTimeZone('Europe/Paris'));
-        $this->checkPickupDateWithinWindow($newPickupDate);
-        $order->setPickupDate($newPickupDate);
-
-        $productData = $this->decreaseStockAndBuildProductData($dto->items);
-
-        $this->mapper->updateFromDto($dto, $order, $productData);
-
-        $this->orderStoreRepository->save($order);
-        return $this->mapper->toDto($order);
     }
 
     /**
