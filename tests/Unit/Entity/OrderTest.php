@@ -61,6 +61,26 @@ class OrderTest extends TestCase
         $this->assertNull($productOrder->getOrder());
     }
 
+    public function testPickupDateLabelShowsExactDayAndDate()
+    {
+        $order = (new Order())->setPickupDate(
+            new \DateTimeImmutable('2026-10-20 00:00:00', new \DateTimeZone('Europe/Paris'))
+        );
+
+        $this->assertSame('Mardi 20 oct.', $order->getPickupDateLabel());
+    }
+
+    public function testPickupDateLabelDoesNotShiftDayForDateLoadedInUtc()
+    {
+        // Doctrine hydrates the property directly (no setter): the stored Paris
+        // midnight comes back labelled with the server timezone (UTC).
+        $order = new Order();
+        $ref = new \ReflectionProperty($order, 'pickupDate');
+        $ref->setValue($order, new \DateTimeImmutable('2026-10-16 00:00:00', new \DateTimeZone('UTC')));
+
+        $this->assertStringStartsWith('Vendredi 16', $order->getPickupDateLabel());
+    }
+
     public function testNewOrderIsNotCancelled()
     {
         $order = new Order();

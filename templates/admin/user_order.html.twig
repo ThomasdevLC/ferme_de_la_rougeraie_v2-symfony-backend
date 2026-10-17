@@ -1,7 +1,6 @@
 {% set productOrders = field.value %}
 {% set order = productOrders|first ? productOrders|first.order : null %}
 
-{% set pickupDays = { 2: 'Mardi', 5: 'Vendredi' } %}
 {% set unitLabels = { 'PIECE': 'Pièce', 'BUNDLE': 'Botte', 'BUNCH': 'Bouquet', 'LITER': 'Litre', 'KG': 'Kilo' } %}
 
 {% set grandTotal = 0 %}
@@ -166,7 +165,8 @@
                 </div>
                 <div class="order-tile">
                     <span class="order-tile-label">Retrait</span>
-                    <span class="order-badge order-badge-pickup">{{ pickupDays[order.pickupDay] ?? order.pickupDay }}</span>
+                    {% set pickupParts = order.pickupDateLabel|split(' ', 2) %}
+                    <span class="order-badge order-badge-pickup"><strong>{{ pickupParts[0] }}</strong> {{ pickupParts[1] ?? '' }}</span>
                 </div>
             </div>
 
