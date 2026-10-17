@@ -112,9 +112,12 @@
         }
 
         @media print {
+            /* Marge de page à 0 : le navigateur n'a plus de place pour ses
+               en-têtes/pieds (URL, date) ; la marge est recréée par le padding
+               de chaque page imprimée. */
             @page {
                 size: A4 landscape;
-                margin: 10mm;
+                margin: 0;
             }
 
             body * {
@@ -137,6 +140,7 @@
             .orders-print-page {
                 break-after: page;
                 page-break-after: always;
+                padding: 10mm;
             }
 
             .orders-print-page:last-child {
@@ -175,6 +179,20 @@
             .orders-print-table td:first-child {
                 text-align: left;
                 width: 22%;
+            }
+
+            .orders-print-table .orders-phone {
+                font-size: 8px;
+                white-space: nowrap;
+            }
+
+            /* Quantités par client, un peu plus lisibles que le reste */
+            .orders-print-table tbody td:not(:first-child) {
+                font-size: 11px;
+            }
+
+            .orders-print-table .orders-total-row td {
+                font-size: 11px;
             }
         }
     </style>
