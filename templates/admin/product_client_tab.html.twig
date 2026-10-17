@@ -44,6 +44,67 @@
             z-index: 3;
         }
 
+        .orders-phone {
+            color: var(--bs-secondary-color, #6c757d);
+            font-size: .8rem;
+            font-weight: normal;
+        }
+
+        /* Noms alignés en haut, numéro sur une seule ligne */
+        .orders-screen-table thead th {
+            vertical-align: top;
+        }
+
+        .orders-screen-table .orders-phone {
+            white-space: nowrap;
+        }
+
+        .orders-top-scroll {
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .orders-top-scroll > div {
+            height: 1px;
+        }
+
+        /* Barres de défilement (haut et bas) plus épaisses : Chrome, Edge, Safari.
+           Pas de scrollbar-width/scrollbar-color : ils désactiveraient ces règles. */
+        .orders-top-scroll::-webkit-scrollbar,
+        .orders-screen-table .table-responsive::-webkit-scrollbar {
+            height: 16px;
+        }
+
+        .orders-top-scroll::-webkit-scrollbar-track,
+        .orders-screen-table .table-responsive::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .orders-top-scroll::-webkit-scrollbar-thumb,
+        .orders-screen-table .table-responsive::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border: 3px solid #e9ecef;
+            border-radius: 8px;
+        }
+
+        .orders-top-scroll::-webkit-scrollbar-thumb:hover,
+        .orders-screen-table .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #6c757d;
+        }
+
+        /* Quantité totale du produit, tous clients confondus */
+        .orders-line-total {
+            color: var(--bs-primary, #0d6efd);
+            font-weight: 700;
+            margin-inline-end: .4rem;
+        }
+
+        .orders-total-row td {
+            border-top: 2px solid var(--bs-primary, #0d6efd);
+            font-weight: 700;
+        }
+
         /* On garde le fond rayé cohérent sur la colonne figée (fond opaque) */
         .orders-screen-table tbody tr:nth-of-type(odd) td:first-child {
             background-color: #f2f2f2;
@@ -93,6 +154,10 @@
                 display: table-header-group;
             }
 
+            .orders-print-table thead th {
+                vertical-align: top;
+            }
+
             .orders-print-table tr {
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -138,6 +203,9 @@
             </div>
         </div>
 
+        {# Barre de défilement du haut, synchronisée avec celle du tableau (script plus bas) #}
+        <div class="orders-top-scroll" hidden><div></div></div>
+
         <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead>
@@ -146,6 +214,7 @@
                     {% for user in users %}
                         <th class="text-center">
                             {{ user.firstName }}<br>{{ user.lastName }}
+                            <div class="orders-phone">{{ user.phone }}</div>
                         </th>
                     {% endfor %}
                 </tr>
@@ -155,6 +224,7 @@
                 {% for line in lines %}
                     <tr>
                         <td>
+                            <span class="orders-line-total">{{ line.totalQuantity }}</span>
                             {{ line.productName }}{% if line.variantLabel %} - {{ line.variantLabel }}{% endif %}
                             <small class="text-muted ms-2">({{ line.unit }})</small>
                         </td>
@@ -167,9 +237,50 @@
                     </tr>
                 {% endfor %}
             </tbody>
+
+            {% if users is not empty %}
+                <tfoot>
+                    <tr class="orders-total-row">
+                        <td>Total</td>
+                        {% for user in users %}
+                            <td class="text-center">{{ (userTotals[user.id] ?? 0)|number_format(2, ',', ' ') }} €</td>
+                        {% endfor %}
+                    </tr>
+                </tfoot>
+            {% endif %}
         </table>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const top    = document.querySelector('.orders-top-scroll');
+            const bottom = document.querySelector('.orders-screen-table .table-responsive');
+            if (!top || !bottom) {
+                return;
+            }
+
+            // Same scrollable width as the table; hidden when nothing overflows.
+            const resize = () => {
+                top.firstElementChild.style.width = bottom.scrollWidth + 'px';
+                top.hidden = bottom.scrollWidth <= bottom.clientWidth;
+            };
+
+            // Copy only real moves (>= 1px): with display scaling, scrollLeft is
+            // fractional and gets rounded, so an exact comparison makes both
+            // bars echo each other endlessly (jittery thumb).
+            const follow = (from, to) => from.addEventListener('scroll', () => {
+                if (Math.abs(to.scrollLeft - from.scrollLeft) >= 1) {
+                    to.scrollLeft = from.scrollLeft;
+                }
+            });
+            follow(top, bottom);
+            follow(bottom, top);
+
+            resize();
+            window.addEventListener('resize', resize);
+        })();
+    </script>
 
     <div class="orders-print-report">
         {% for userGroup in users|batch(8) %}
@@ -182,7 +293,7 @@
                         <tr>
                             <th>Produit</th>
                             {% for user in userGroup %}
-                                <th>{{ user.firstName }}<br>{{ user.lastName }}</th>
+                                <th>{{ user.firstName }}<br>{{ user.lastName }}<br><span class="orders-phone">{{ user.phone }}</span></th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -190,13 +301,23 @@
                     <tbody>
                         {% for line in lines %}
                             <tr>
-                                <td>{{ line.productName }}{% if line.variantLabel %} - {{ line.variantLabel }}{% endif %} ({{ line.unit }})</td>
+                                {# Line total covers all customers, not only this page's. #}
+                                <td><span class="orders-line-total">{{ line.totalQuantity }}</span> {{ line.productName }}{% if line.variantLabel %} - {{ line.variantLabel }}{% endif %} ({{ line.unit }})</td>
                                 {% for user in userGroup %}
                                     <td>{{ quantitiesTab[user.id][line.key] ?? '-' }}</td>
                                 {% endfor %}
                             </tr>
                         {% endfor %}
                     </tbody>
+
+                    <tfoot>
+                        <tr class="orders-total-row">
+                            <td>Total</td>
+                            {% for user in userGroup %}
+                                <td>{{ (userTotals[user.id] ?? 0)|number_format(2, ',', ' ') }} €</td>
+                            {% endfor %}
+                        </tr>
+                    </tfoot>
                 </table>
             </section>
         {% else %}

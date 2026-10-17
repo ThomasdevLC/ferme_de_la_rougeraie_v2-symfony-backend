@@ -19,7 +19,9 @@ class ProductOrderRepository extends ServiceEntityRepository
      * (product, variant) so variant lines stay distinct. Non-deleted,
      * non-cancelled, not-yet-done orders only.
      *
-     * @return array<array{userId: int|string, productId: int|string, variantId: int|string|null, variantLabel: ?string, totalQuantity: string}>
+     * totalCents is the amount of those lines (unit price x quantity, cents).
+     *
+     * @return array<array{userId: int|string, productId: int|string, variantId: int|string|null, variantLabel: ?string, totalQuantity: string, totalCents: string}>
      */
     public function getUserVariantQuantitiesByPickupDay(int $pickupDay): array
     {
@@ -29,7 +31,8 @@ class ProductOrderRepository extends ServiceEntityRepository
                 'IDENTITY(po.product)        AS productId',
                 'IDENTITY(po.productVariant) AS variantId',
                 'v.label                     AS variantLabel',
-                'SUM(po.quantity)            AS totalQuantity'
+                'SUM(po.quantity)            AS totalQuantity',
+                'SUM(po.quantity * po.unitPrice) AS totalCents'
             )
             ->innerJoin('po.order', 'o')
             ->leftJoin('po.productVariant', 'v')
