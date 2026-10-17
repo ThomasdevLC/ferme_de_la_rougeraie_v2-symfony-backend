@@ -46,7 +46,7 @@ class ProductRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('p')
             ->select('p.id')
             ->leftJoin('p.productOrders', 'po')
-            ->leftJoin('po.order', 'o', 'WITH', 'o.done = false')
+            ->leftJoin('po.order', 'o', 'WITH', 'o.done = false AND o.cancelledAt IS NULL')
             ->where('p.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->groupBy('p.id')
@@ -67,6 +67,7 @@ class ProductRepository extends ServiceEntityRepository
                 ->join('po.order', 'o')
                 ->where('p.id IN (:ids)')
                 ->andWhere('o.done = false')
+                ->andWhere('o.cancelledAt IS NULL')
                 ->setParameter('ids', $ids)
                 ->getQuery()
                 ->getScalarResult(),

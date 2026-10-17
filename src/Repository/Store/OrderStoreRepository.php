@@ -28,6 +28,7 @@ class OrderStoreRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('o')
             ->andWhere('o.user = :user')
+            ->andWhere('o.cancelledAt IS NULL')
             ->setParameter('user', $user)
             ->leftJoin('o.productOrders', 'po')
             ->addSelect('po')
@@ -43,6 +44,7 @@ class OrderStoreRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('o')
             ->andWhere('o.id = :id')
             ->andWhere('o.user = :user')
+            ->andWhere('o.cancelledAt IS NULL')
             ->setParameter('id', $orderId)
             ->setParameter('user', $user)
             ->leftJoin('o.productOrders', 'po')

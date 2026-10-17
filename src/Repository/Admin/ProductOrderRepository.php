@@ -17,7 +17,7 @@ class ProductOrderRepository extends ServiceEntityRepository
     /**
      * Quantities ordered by each user for a pickup day, aggregated by
      * (product, variant) so variant lines stay distinct. Non-deleted,
-     * not-yet-done orders only.
+     * non-cancelled, not-yet-done orders only.
      *
      * @return array<array{userId: int|string, productId: int|string, variantId: int|string|null, variantLabel: ?string, totalQuantity: string}>
      */
@@ -34,6 +34,7 @@ class ProductOrderRepository extends ServiceEntityRepository
             ->innerJoin('po.order', 'o')
             ->leftJoin('po.productVariant', 'v')
             ->andWhere('o.isDeleted = false')
+            ->andWhere('o.cancelledAt IS NULL')
             ->andWhere('o.done = false')
             ->andWhere('o.pickupDay  = :pickupDay')
             ->setParameter('pickupDay', $pickupDay)
