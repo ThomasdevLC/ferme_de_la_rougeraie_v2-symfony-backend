@@ -78,6 +78,7 @@
 
     .order-detail .order-badge-pending { background: #fff3cd; color: #8a6100; }
     .order-detail .order-badge-done    { background: #d1e7dd; color: #0f5132; }
+    .order-detail .order-badge-cancelled { background: #f8d7da; color: #842029; }
     .order-detail .order-badge-pickup  { background: rgba(13, 110, 253, .12); color: var(--order-accent); }
 
     .order-detail .order-summary-total { text-align: right; }
@@ -154,7 +155,10 @@
                 </div>
                 <div class="order-tile">
                     <span class="order-tile-label">Statut</span>
-                    {% if order.done %}
+                    {# A cancelled order is also done: show the cancellation first. #}
+                    {% if order.cancelledAt %}
+                        <span class="order-badge order-badge-cancelled">Annulée le {{ order.cancelledAt|date('d/m à H:i') }}</span>
+                    {% elseif order.done %}
                         <span class="order-badge order-badge-done">Traitée</span>
                     {% else %}
                         <span class="order-badge order-badge-pending">En attente</span>

@@ -1,0 +1,8 @@
+{# "Traitée" cell: a cancelled order shows its cancellation date instead of
+   the switch (it is done, and must not be toggled back); others keep the
+   default EasyAdmin switch. #}
+{% if entity.instance.cancelledAt %}
+    <span class="badge badge-danger">Annulée le {{ entity.instance.cancelledAt|date('d/m à H:i') }}</span>
+{% else %}
+    {{ include('@EasyAdmin/crud/field/boolean.html.twig') }}
+{% endif %}
