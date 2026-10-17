@@ -1,0 +1,3 @@
+{# "Mardi 20 oct." with the weekday in bold. #}
+{% set parts = entity.instance.pickupDateLabel|split(' ', 2) %}
+<strong>{{ parts[0] }}</strong> {{ parts[1] ?? '' }}

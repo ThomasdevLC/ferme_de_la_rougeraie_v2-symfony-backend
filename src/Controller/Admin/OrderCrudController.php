@@ -10,7 +10,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\{BooleanField,
-    ChoiceField,
     CollectionField,
     DateTimeField,
     IdField,
@@ -47,16 +46,10 @@ class OrderCrudController extends AbstractCrudController
             TextField::new('user.lastName', 'Nom')->hideOnDetail(),
             MoneyField::new('total', 'Prix total')->setCurrency('EUR')->hideOnDetail(),
 
-            ChoiceField::new('pickupDay')
-                ->setLabel('Jour de retrait')
-                ->renderAsBadges()
-                ->setChoices(
-                    array_combine(
-                        array_map(fn(PickupDay $d) => $d->label(), PickupDay::cases()),
-                        array_map(fn(PickupDay $d) => $d->value,   PickupDay::cases())
-                    )
-                )
-                ->formatValue(fn($value) => PickupDay::fromWeekday((int) $value)->label())->hideOnDetail(),
+            // Exact pickup date ("Mardi 20 oct.", weekday in bold), sortable by real date.
+            DateTimeField::new('pickupDate', 'Retrait')
+                ->setTemplatePath('admin/field/pickup_date.html.twig')
+                ->hideOnDetail(),
 
             BooleanField::new('done', 'Traitée')
                 ->renderAsSwitch(true)

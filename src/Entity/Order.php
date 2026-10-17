@@ -122,6 +122,24 @@ class Order
         return $this->pickupDay;
     }
 
+    /**
+     * Pickup date for display, e.g. "Mardi 20 oct." (formatted in the date's
+     * own timezone so the stored day never shifts).
+     */
+    public function getPickupDateLabel(): string
+    {
+        $formatter = new \IntlDateFormatter(
+            'fr_FR',
+            \IntlDateFormatter::NONE,
+            \IntlDateFormatter::NONE,
+            $this->pickupDate->getTimezone(),
+            null,
+            'EEEE d MMM'
+        );
+
+        return ucfirst($formatter->format($this->pickupDate));
+    }
+
     public function isDone(): bool
     {
         return $this->done;
