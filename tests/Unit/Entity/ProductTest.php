@@ -133,6 +133,20 @@ class ProductTest extends TestCase
         $this->assertNull($product->getInformation());
     }
 
+    public function testInformationIsTrimmed()
+    {
+        $product = (new Product())->setInformation("  Bio, cueilli le matin \n");
+
+        $this->assertSame('Bio, cueilli le matin', $product->getInformation());
+    }
+
+    public function testBlankInformationIsStoredAsNull()
+    {
+        $product = (new Product())->setInformation('   ');
+
+        $this->assertNull($product->getInformation());
+    }
+
     public function testGetAndSetImage()
     {
         $product = new Product();

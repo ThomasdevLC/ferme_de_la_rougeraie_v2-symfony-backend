@@ -159,6 +159,8 @@ class BasketCrudController extends AbstractCrudController
                 ->setFormTypeOption('attr', ['min' => 0])
                 ->setFormTypeOption('row_attr', ['class' => 'stock-wrapper']),
 
+            ProductCrudController::informationField(),
+
             TextField::new('soldOutLabel', 'État')->onlyOnIndex(),
         ];
     }
