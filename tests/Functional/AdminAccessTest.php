@@ -101,4 +101,32 @@ class AdminAccessTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(403);
     }
+
+    public function testStockTabWithRoleAdminIsAccessible(): void
+    {
+        $admin = static::getContainer()
+            ->get('doctrine')
+            ->getRepository(User::class)
+            ->findOneBy(['email' => 'admin@example.com']);
+
+        $this->client->loginUser($admin);
+        $this->client->request('GET', '/admin/stock-tab');
+
+        // On vérifie uniquement l'accès, pas le rendu (EasyAdmin nécessite un contexte non dispo en test)
+        $statusCode = $this->client->getResponse()->getStatusCode();
+        $this->assertNotContains($statusCode, [401, 403]);
+    }
+
+    public function testStockTabWithRoleUserIsForbidden(): void
+    {
+        $allUsers    = static::getContainer()->get('doctrine')->getRepository(User::class)->findAll();
+        $regularUser = current(array_filter($allUsers, fn(User $u) => !in_array('ROLE_ADMIN', $u->getRoles())));
+
+        $this->assertNotNull($regularUser, 'Aucun user standard trouvé');
+
+        $this->client->loginUser($regularUser);
+        $this->client->request('GET', '/admin/stock-tab');
+
+        $this->assertResponseStatusCodeSame(403);
+    }
 }

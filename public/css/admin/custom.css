@@ -327,6 +327,44 @@
     opacity: .6;
 }
 
+/* Collapsed variant row: label, price/stock, then a shown/hidden pill pushed
+   to the right. A hidden variant is dimmed so it stands out at a glance. */
+.variants-wrapper .collection-title-js {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: .6rem;
+}
+
+.variants-wrapper .variant-meta-js {
+    font-size: .85em;
+    font-weight: 400;
+    opacity: .65;
+}
+
+.variants-wrapper .variant-shown-js,
+.variants-wrapper .variant-hidden-js {
+    margin-inline: auto .75rem;
+    padding: .1rem .55rem;
+    border-radius: 999px;
+    font-size: .75em;
+    font-weight: 600;
+}
+
+.variants-wrapper .variant-shown-js {
+    background: var(--bs-success-bg-subtle, #d1e7dd);
+    color: var(--bs-success-text-emphasis, #0a3622);
+}
+
+.variants-wrapper .variant-hidden-js {
+    background: var(--bs-secondary-bg-subtle, #e2e3e5);
+    color: var(--bs-secondary-text-emphasis, #2b2f32);
+}
+
+.variants-wrapper .collection-title-js:has(.variant-hidden-js) > span:not(.variant-hidden-js) {
+    opacity: .5;
+}
+
 /* Inline error when validating an incomplete or duplicate composition row. */
 .basket-items-wrapper .basket-row-error {
     margin-block-start: .5rem;

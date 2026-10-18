@@ -53,6 +53,8 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Paniers', 'fa-solid fa-basket-shopping', Product::class)
             ->setController(\App\Controller\Admin\BasketCrudController::class);
 
+        yield MenuItem::linkToRoute('Stock', 'fa-solid fa-boxes-stacked', 'admin_stock_tab');
+
         yield MenuItem::linkToCrud('Commandes', 'fas fa-box', Order::class);
         yield MenuItem::linkToRoute('Tableau commandes', 'fa-solid fa-table-list', 'admin_product_client_tab');
 

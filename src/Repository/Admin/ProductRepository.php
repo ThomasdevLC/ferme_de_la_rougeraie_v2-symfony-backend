@@ -3,6 +3,7 @@
 namespace App\Repository\Admin;
 
 use App\Entity\Product;
+use App\Entity\ProductVariant;
 use App\Enum\PickupDay;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -109,6 +110,59 @@ class ProductRepository extends ServiceEntityRepository
             ->getScalarResult();
 
         return array_column($rows, 'id');
+    }
+
+    /**
+     * Every tracked stock of the catalogue, lowest first, for the admin stock
+     * table: products with hasStock (baskets included) and the variants whose
+     * stock is set (a variant product carries no product-level stock). Hidden
+     * products stay in, otherwise sold-out ones (auto-hidden at 0) would vanish.
+     *
+     * Each row carries its product id and isBasket so the table can link to
+     * the right edit form (variants link to their parent product).
+     *
+     * @return list<array{productId: int, isBasket: bool, name: string, stock: float}>
+     */
+    public function findTrackedStocks(): array
+    {
+        $products = $this->createQueryBuilder('p')
+            ->select('p.id', 'p.isBasket', 'p.name', 'COALESCE(p.stock, 0) AS stock')
+            ->where('p.isDeleted = false')
+            ->andWhere('p.hasStock = true')
+            ->getQuery()
+            ->getArrayResult();
+
+        $variants = $this->getEntityManager()->createQueryBuilder()
+            ->select('p.id', 'p.isBasket', 'p.name', 'v.label', 'v.stock')
+            ->from(ProductVariant::class, 'v')
+            ->join('v.product', 'p')
+            ->where('p.isDeleted = false')
+            ->andWhere('p.hasVariants = true')
+            ->andWhere('v.stock IS NOT NULL')
+            ->getQuery()
+            ->getArrayResult();
+
+        $rows = [];
+        foreach ($products as $product) {
+            $rows[] = [
+                'productId' => $product['id'],
+                'isBasket'  => (bool) $product['isBasket'],
+                'name'      => $product['name'],
+                'stock'     => (float) $product['stock'],
+            ];
+        }
+        foreach ($variants as $variant) {
+            $rows[] = [
+                'productId' => $variant['id'],
+                'isBasket'  => (bool) $variant['isBasket'],
+                'name'      => $variant['name'] . ' – ' . $variant['label'],
+                'stock'     => (float) $variant['stock'],
+            ];
+        }
+
+        usort($rows, fn (array $a, array $b) => [$a['stock'], $a['name']] <=> [$b['stock'], $b['name']]);
+
+        return $rows;
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Entity\BasketItem;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\ProductOrder;
+use App\Entity\ProductVariant;
 use App\Enum\ProductCategory;
 use App\Enum\ProductUnit;
 use PHPUnit\Framework\TestCase;
@@ -284,6 +285,38 @@ class ProductTest extends TestCase
         $product->validateProductRequirements($context);
     }
 
+    public function testVariantProductRejectsDuplicateLabel(): void
+    {
+        $product = $this->makeValidVariantProduct();
+        // Same label once case and surrounding spaces are ignored.
+        $product->addVariant((new ProductVariant())->setLabel('500 g')->setPrice(300));
+        $product->addVariant((new ProductVariant())->setLabel(' 500 G ')->setPrice(350));
+
+        $builder = $this->createMock(ConstraintViolationBuilderInterface::class);
+        $builder->method('atPath')->willReturnSelf();
+        $builder->expects($this->once())->method('addViolation');
+
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $context->expects($this->once())
+            ->method('buildViolation')
+            ->with($this->stringContains('en double'))
+            ->willReturn($builder);
+
+        $product->validateProductRequirements($context);
+    }
+
+    public function testVariantProductAcceptsDistinctLabels(): void
+    {
+        $product = $this->makeValidVariantProduct();
+        $product->addVariant((new ProductVariant())->setLabel('500 g')->setPrice(300));
+        $product->addVariant((new ProductVariant())->setLabel('1 kg')->setPrice(550));
+
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $context->expects($this->never())->method('buildViolation');
+
+        $product->validateProductRequirements($context);
+    }
+
     /**
      * A simple product satisfying every validation rule except the one under
      * test, so only that rule can fire.
@@ -296,6 +329,22 @@ class ProductTest extends TestCase
         $product->setPrice(250);
         $product->setHasStock(false);
         $product->setCategory(ProductCategory::VEGETABLE);
+
+        return $product;
+    }
+
+    /**
+     * A variant product whose own fields are valid; variants are added by
+     * each test, so only the variant checks can fire.
+     */
+    private function makeValidVariantProduct(): Product
+    {
+        $product = new Product();
+        $product->setName('Pommes');
+        $product->setUnit(ProductUnit::PIECE);
+        $product->setHasVariants(true);
+        $product->setHasStock(false);
+        $product->setCategory(ProductCategory::FRUIT);
 
         return $product;
     }
