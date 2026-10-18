@@ -141,12 +141,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // collection just computes its title from its own fields.
     // Each titleFor returns an ordered list of {text, className?} segments so
     // parts of the title (e.g. the unit) can be styled independently.
+    const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+
+    // Inputs may hold "5.50" or "5,50"; an empty input means "not set".
+    const toNumber = (raw) => {
+        const value = (raw ?? '').trim().replace(',', '.');
+        if (value === '') return null;
+        const number = Number(value);
+        return Number.isNaN(number) ? null : number;
+    };
+
     const titleConfigs = [
         {
+            // Variant row: label, price, stock when tracked, shown/hidden pill.
             wrapper: document.querySelector('.variants-wrapper'),
             titleFor: (item, index) => {
-                const labelInput = item.querySelector('input[name$="[label]"]');
-                return [{ text: labelInput?.value.trim() || ('Variant ' + (index + 1)) }];
+                const field = (name) => item.querySelector(`input[name$="[${name}]"]`);
+                const segments = [{ text: field('label')?.value.trim() || ('Variant ' + (index + 1)) }];
+
+                const price = toNumber(field('priceInEuros')?.value);
+                if (price !== null) segments.push({ text: euros.format(price), className: 'variant-meta-js' });
+
+                const stock = toNumber(field('stock')?.value);
+                if (stock !== null) {
+                    // Own segment, so the flex gap spaces it evenly on both sides.
+                    if (price !== null) segments.push({ text: '–', className: 'variant-meta-js' });
+                    segments.push({ text: 'Qté Stock : ' + stock.toLocaleString('fr-FR'), className: 'variant-meta-js' });
+                }
+
+                segments.push(field('isDisplayed')?.checked
+                    ? { text: 'Affiché', className: 'variant-shown-js' }
+                    : { text: 'Masqué', className: 'variant-hidden-js' });
+
+                return segments;
             },
         },
         {
