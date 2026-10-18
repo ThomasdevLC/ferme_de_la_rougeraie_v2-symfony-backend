@@ -24,11 +24,11 @@ class TimestampListener
             $product->setCreatedAt($now);
         }
 
-        $product->setUpdatedAt(new \DateTime());
+        $product->setUpdatedAt(new \DateTimeImmutable());
     }
 
     public function preUpdate(Product $product, PreUpdateEventArgs $event): void
     {
-        $product->setUpdatedAt(new \DateTime());
+        $product->setUpdatedAt(new \DateTimeImmutable());
     }
 }
