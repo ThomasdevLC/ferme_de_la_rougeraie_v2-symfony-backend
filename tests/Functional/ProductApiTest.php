@@ -50,6 +50,30 @@ class ProductApiTest extends WebTestCase
         $this->assertIsBool($data[0]['hasVariants']);
         $this->assertArrayHasKey('variants', $data[0]);
         $this->assertIsArray($data[0]['variants']);
+
+        // Hover text: always present, null when the product has none.
+        $this->assertArrayHasKey('information', $data[0]);
+    }
+
+    public function testProductInformationIsExposed(): void
+    {
+        $doctrine = static::getContainer()->get('doctrine');
+
+        $product = $doctrine->getRepository(Product::class)->findOneBy([]);
+        $this->assertNotNull($product);
+
+        $product->setInformation('Variété ancienne, idéale en soupe');
+        $product->setIsDisplayed(true);
+        $doctrine->getManager()->flush();
+
+        $this->client->request('GET', '/api/products');
+        $this->assertResponseIsSuccessful();
+
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+
+        $found = array_values(array_filter($data, fn($p) => $p['id'] === $product->getId()));
+        $this->assertNotEmpty($found, 'Le produit doit apparaître dans la liste');
+        $this->assertSame('Variété ancienne, idéale en soupe', $found[0]['information']);
     }
 
     public function testProductWithoutStockManagementAppearsWithNullStock(): void

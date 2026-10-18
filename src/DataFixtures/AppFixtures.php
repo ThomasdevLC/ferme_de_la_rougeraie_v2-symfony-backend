@@ -102,6 +102,8 @@ class AppFixtures extends Fixture
             $product->setLimited($faker->boolean());
             $product->setDiscount($faker->boolean());
             $product->setDiscountText($faker->boolean() ? $faker->sentence() : null);
+            // Only the first product carries an information, to cover both cases.
+            $product->setInformation($products === [] ? 'Variété ancienne, idéale en soupe' : null);
             $product->setImage('default.jpg');
             $product->setUser($admin);
 
