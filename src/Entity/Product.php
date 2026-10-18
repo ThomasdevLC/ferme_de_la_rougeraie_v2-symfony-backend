@@ -583,6 +583,10 @@ class Product
         if ($this->isBasket) {
             $this->validateNoDuplicateBasketComponents($context);
         }
+
+        if ($this->hasVariants) {
+            $this->validateNoDuplicateVariantLabels($context);
+        }
     }
 
     /**
@@ -608,6 +612,39 @@ class Product
                     $component->getName()
                 ))
                     ->atPath('basketItems')
+                    ->addViolation();
+                $reported[$key] = true;
+            }
+
+            $seen[$key] = true;
+        }
+    }
+
+    /**
+     * Two variants of one product may not share a label (case and surrounding
+     * spaces ignored), or the customer could not tell them apart. Checked in
+     * the form only: a unique index would break a save that removes a variant
+     * and re-adds the same label, since Doctrine inserts before it deletes.
+     */
+    private function validateNoDuplicateVariantLabels(ExecutionContextInterface $context): void
+    {
+        $seen = [];
+        $reported = [];
+
+        foreach ($this->variants as $variant) {
+            $label = trim($variant->getLabel() ?? '');
+            if ($label === '') {
+                continue;
+            }
+
+            $key = mb_strtolower($label);
+
+            if (isset($seen[$key]) && !isset($reported[$key])) {
+                $context->buildViolation(sprintf(
+                    'Le variant « %s » est en double.',
+                    $label
+                ))
+                    ->atPath('variants')
                     ->addViolation();
                 $reported[$key] = true;
             }
