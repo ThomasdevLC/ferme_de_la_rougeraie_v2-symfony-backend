@@ -57,6 +57,9 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $discountText = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $information = null;
+
     #[ORM\Column(length: 255)]
     private ?string $image = null;
 
@@ -271,6 +274,18 @@ class Product
     public function setDiscountText(?string $discountText): static
     {
         $this->discountText = $discountText;
+
+        return $this;
+    }
+
+    public function getInformation(): ?string
+    {
+        return $this->information;
+    }
+
+    public function setInformation(?string $information): static
+    {
+        $this->information = $information;
 
         return $this;
     }

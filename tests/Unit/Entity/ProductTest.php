@@ -114,6 +114,25 @@ class ProductTest extends TestCase
         $this->assertEquals($discountText, $product->getDiscountText());
     }
 
+    public function testInformationIsNullByDefault()
+    {
+        $product = new Product();
+
+        $this->assertNull($product->getInformation());
+    }
+
+    public function testGetAndSetInformation()
+    {
+        $product = new Product();
+        $information = "Variété ancienne, idéale en soupe";
+        $product->setInformation($information);
+
+        $this->assertEquals($information, $product->getInformation());
+
+        $product->setInformation(null);
+        $this->assertNull($product->getInformation());
+    }
+
     public function testGetAndSetImage()
     {
         $product = new Product();
