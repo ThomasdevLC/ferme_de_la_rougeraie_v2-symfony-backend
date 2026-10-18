@@ -84,6 +84,35 @@ class ProductMapperTest extends TestCase
         $this->assertNull($dto->category);
     }
 
+    public function testInformationIsExposed(): void
+    {
+        $product = (new Product())
+            ->setName('Potimarron')
+            ->setPriceInEuros(2.5)
+            ->setUnit(ProductUnit::PIECE)
+            ->setImage('potimarron.jpg')
+            ->setInformation('Variété ancienne, idéale en soupe');
+        $this->setId($product, 40);
+
+        $dto = ProductMapper::toDto($product, new UnitTranslator());
+
+        $this->assertSame('Variété ancienne, idéale en soupe', $dto->information);
+    }
+
+    public function testInformationIsNullWhenNotSet(): void
+    {
+        $product = (new Product())
+            ->setName('Aillet')
+            ->setPriceInEuros(2.2)
+            ->setUnit(ProductUnit::BUNDLE)
+            ->setImage('aillet.jpg');
+        $this->setId($product, 65);
+
+        $dto = ProductMapper::toDto($product, new UnitTranslator());
+
+        $this->assertNull($dto->information);
+    }
+
     private function makeVariant(int $id, string $label, float $priceEuros, bool $displayed): ProductVariant
     {
         $variant = (new ProductVariant())

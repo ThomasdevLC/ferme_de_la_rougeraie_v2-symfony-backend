@@ -40,6 +40,7 @@ class ProductMapper
             isBasket: $product->isBasket(),
             basketItems: self::basketItemsToDto($product, $translator),
             category: self::categoryToDto($product->getCategory()),
+            information: $product->getInformation(),
         );
     }
 

@@ -25,6 +25,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -238,6 +239,8 @@ class ProductCrudController extends AbstractCrudController
                 ->setLabel('Texte Promo')
                 ->setFormTypeOption('row_attr', ['class' => 'discountText-wrapper']),
 
+            self::informationField(),
+
             TextField::new('soldOutLabel', 'État')
                 ->onlyOnIndex(),
 
@@ -302,6 +305,20 @@ class ProductCrudController extends AbstractCrudController
                         'Sans variants' => false,
                     ])
             );
+    }
+
+    /**
+     * "Information" text shown on hover over the front card (left empty: nothing
+     * shown); shared with the basket form.
+     */
+    public static function informationField(): TextareaField
+    {
+        return TextareaField::new('information')
+            ->setLabel('Information')
+            ->onlyOnForms()
+            ->setRequired(false)
+            ->setFormTypeOption('attr', ['maxlength' => 255, 'rows' => 2])
+            ->setFormTypeOption('row_attr', ['class' => 'information-wrapper']);
     }
 
     /**

@@ -57,6 +57,11 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $discountText = null;
 
+    // Free text shown on hover over the product card (front).
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255, maxMessage: 'L\'information ne doit pas dépasser {{ limit }} caractères.')]
+    private ?string $information = null;
+
     #[ORM\Column(length: 255)]
     private ?string $image = null;
 
@@ -271,6 +276,22 @@ class Product
     public function setDiscountText(?string $discountText): static
     {
         $this->discountText = $discountText;
+
+        return $this;
+    }
+
+    public function getInformation(): ?string
+    {
+        return $this->information;
+    }
+
+    /**
+     * Blank text is stored as null, so "no information" has a single form.
+     */
+    public function setInformation(?string $information): static
+    {
+        $information = $information !== null ? trim($information) : null;
+        $this->information = $information !== '' ? $information : null;
 
         return $this;
     }

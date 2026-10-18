@@ -25,6 +25,7 @@ readonly class ProductDto
         public bool     $isBasket = false,
         public array    $basketItems = [],
         public ?ProductCategoryDto $category = null,
+        public ?string  $information = null,
     )
     {}
 }

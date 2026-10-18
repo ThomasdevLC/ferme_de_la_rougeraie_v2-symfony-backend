@@ -30,6 +30,10 @@
     display: none;
 }
 
+.information-wrapper textarea {
+    max-width: 40rem;
+}
+
 .price-wrapper .input-group,
 .inter-wrapper input.form-control {
     max-width: 20rem;
