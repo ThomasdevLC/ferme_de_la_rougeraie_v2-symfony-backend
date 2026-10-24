@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1 — builder : installe les dépendances Composer
 # ============================================================
-FROM php:8.2-fpm AS builder
+FROM php:8.2.35-fpm-trixie AS builder
 
 RUN apt-get update && apt-get install -y \
     git \
@@ -46,7 +46,7 @@ RUN echo "APP_ENV=prod" > .env
 # ============================================================
 # Stage 2 — image finale (nginx + PHP-FPM dans le même container)
 # ============================================================
-FROM php:8.2-fpm
+FROM php:8.2.35-fpm-trixie
 
 RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
